@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Settings,
   Building,
@@ -11,43 +11,16 @@ import {
   CheckCircle2,
   Database,
   Lock,
-  Trash2,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useData } from '@/context/data-context';
 import { useAuth } from '@/context/auth-context';
-import { supabase, SUPABASE_PROJECT_URL } from '@/lib/supabase';
 
 export default function SettingsPage() {
-  const { settings, updateSettings, resetToSampleData, clearAllData } = useData();
+  const { settings, updateSettings, clearAllData, isSupabaseConnected } = useData();
   const { user, updateUser } = useAuth();
 
   const [activeTab, setActiveTab] = useState<'company' | 'invoice' | 'profile' | 'system'>('company');
-
-  // Live Supabase Status
-  const [dbStatus, setDbStatus] = useState<'checking' | 'connected' | 'error'>('checking');
-
-  useEffect(() => {
-    let isMounted = true;
-    const verifySupabase = async () => {
-      try {
-        const { error } = await supabase.from('clients').select('id').limit(1);
-        if (isMounted) {
-          if (!error) {
-            setDbStatus('connected');
-          } else {
-            setDbStatus('error');
-          }
-        }
-      } catch {
-        if (isMounted) setDbStatus('error');
-      }
-    };
-    verifySupabase();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   // Company Form State
   const [companyName, setCompanyName] = useState(settings.company_name);
@@ -110,10 +83,10 @@ export default function SettingsPage() {
     triggerSaveNotification('Profile updated successfully');
   };
 
-  const handleResetData = () => {
-    if (confirm('Reset application data to initial XYVEX agency sample records?')) {
-      resetToSampleData();
-      triggerSaveNotification('Data restored to XYVEX seed demo values');
+  const handleClearAllData = async () => {
+    if (confirm('ഡാറ്റാബേസിലെ എല്ലാ ഡാറ്റയും ഒഴിവാക്കി ക്ലീൻ ചെയ്യണമെന്നുറപ്പാണോ? (Clear all database records?)')) {
+      await clearAllData();
+      triggerSaveNotification('ഡാറ്റാബേസ് പൂർണ്ണമായി ക്ലിയർ ചെയ്തു (All data purged)');
     }
   };
 
@@ -404,40 +377,47 @@ export default function SettingsPage() {
         {activeTab === 'system' && (
           <div className="glass-panel p-6 space-y-5 text-xs">
             <h2 className="text-xs uppercase tracking-wider text-zinc-400 font-semibold">
-              Database Sync & Demo Data
+              Supabase Cloud Database & Storage
             </h2>
 
             <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 space-y-3">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <span className="font-semibold text-white block">Supabase PostgreSQL Connection</span>
-                  <span className="text-[11px] text-zinc-400">
-                    Endpoint: https://kzcbkfrbddnhbjcsneno.supabase.co
+                  <span className="font-semibold text-white block text-sm">Supabase PostgreSQL Connection</span>
+                  <span className="text-[11px] text-zinc-400 font-mono mt-0.5 block">
+                    Endpoint: https://gnupewulyusspljycsfk.supabase.co
                   </span>
                 </div>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  <CheckCircle2 className="w-3 h-3" /> Online & Configured
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>സൂപ്പർബേസ് കണക്റ്റഡ് (Supabase Connected)</span>
                 </span>
               </div>
               <p className="text-zinc-400 text-[11px] leading-relaxed">
-                Database schema is fully generated under <code className="text-zinc-200 bg-white/10 px-1 py-0.5 rounded font-mono">supabase/schema.sql</code> including RLS policies, indexing, and automatic revenue calculation views.
+                Database schema is fully generated under <code className="text-zinc-200 bg-white/10 px-1 py-0.5 rounded font-mono">supabase/schema.sql</code>. All clients, projects, payments, expenses, and invoices synchronize in real-time with your Tokyo PostgreSQL database instance.
               </p>
             </div>
 
             <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <span className="font-semibold text-white block">Reset to Realistic Agency Sample Data</span>
-                <span className="text-zinc-400 text-[11px]">
-                  Restores ABC Company, XYZ Business, Nova Clinic, and Naadan Foodstuff with realistic agency campaigns.
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-white block">Clean Production Database</span>
+                  <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
+                    ഡെമോ ഒഴിവാക്കി (No Demo Data)
+                  </span>
+                </div>
+                <span className="text-zinc-400 text-[11px] mt-1 block">
+                  All demo records have been purged. The database is clean, real-time, and ready for your live agency transactions.
                 </span>
               </div>
               <button
                 type="button"
-                onClick={handleResetData}
-                className="glass-button-secondary py-2 px-4 text-zinc-300 hover:text-white shrink-0"
+                onClick={handleClearAllData}
+                className="glass-button-secondary py-2 px-4 text-rose-400 hover:text-rose-300 hover:border-rose-500/30 shrink-0 flex items-center gap-2"
+                title="Wipe database to completely clean state"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                <span>Reset Sample Data</span>
+                <span>ഡാറ്റ ക്ലിയർ ചെയ്യുക (Purge Data)</span>
               </button>
             </div>
           </div>

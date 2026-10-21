@@ -100,14 +100,14 @@ export default function DashboardPage() {
               <span className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">
                 Total Revenue
               </span>
-              <ArcGauge percentage={85} strokeColor="#e11d48" icon={<Wallet className="w-3.5 h-3.5 text-white" />} />
+              <ArcGauge percentage={metrics.totalRevenue > 0 ? 85 : 0} strokeColor="#e11d48" icon={<Wallet className="w-3.5 h-3.5 text-white" />} />
             </div>
             <div className="mt-4">
               <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-sans">
-                {formatCurrency(metrics.totalRevenue || 125000)}
+                {formatCurrency(metrics.totalRevenue)}
               </h3>
               <p className="text-xs text-[#fb7185] font-semibold mt-1.5 flex items-center gap-1">
-                <TrendingUp className="w-3.5 h-3.5" /> +18.4% vs last month
+                <TrendingUp className="w-3.5 h-3.5" /> {metrics.totalRevenue > 0 ? '+18.4% vs last month' : 'No revenue yet'}
               </p>
             </div>
           </div>
@@ -118,14 +118,14 @@ export default function DashboardPage() {
               <span className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">
                 Total Expenses
               </span>
-              <ArcGauge percentage={55} strokeColor="#e11d48" icon={<Receipt className="w-3.5 h-3.5 text-white" />} />
+              <ArcGauge percentage={metrics.totalExpenses > 0 ? 55 : 0} strokeColor="#e11d48" icon={<Receipt className="w-3.5 h-3.5 text-white" />} />
             </div>
             <div className="mt-4">
               <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-sans">
-                {formatCurrency(metrics.totalExpenses || 41700)}
+                {formatCurrency(metrics.totalExpenses)}
               </h3>
               <p className="text-xs text-zinc-400 mt-1.5">
-                {formatCurrency(metrics.clientExpenses || 8500)} client expenses
+                {formatCurrency(metrics.clientExpenses)} client expenses
               </p>
             </div>
           </div>
@@ -136,14 +136,14 @@ export default function DashboardPage() {
               <span className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">
                 Net Profit
               </span>
-              <ArcGauge percentage={66} strokeColor="#e11d48" icon={<TrendingUp className="w-3.5 h-3.5 text-[#fb7185]" />} />
+              <ArcGauge percentage={metrics.netProfit > 0 ? 66 : 0} strokeColor="#e11d48" icon={<TrendingUp className="w-3.5 h-3.5 text-[#fb7185]" />} />
             </div>
             <div className="mt-4">
               <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-sans">
-                {formatCurrency(metrics.netProfit || 83300)}
+                {formatCurrency(metrics.netProfit)}
               </h3>
               <p className="text-xs text-[#fb7185] font-semibold mt-1.5">
-                {metrics.profitMargin > 0 ? metrics.profitMargin.toFixed(1) : '66.6'}% profit margin
+                {metrics.profitMargin > 0 ? metrics.profitMargin.toFixed(1) : '0'}% profit margin
               </p>
             </div>
           </div>
@@ -154,11 +154,11 @@ export default function DashboardPage() {
               <span className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">
                 Pending Receivables
               </span>
-              <ArcGauge percentage={45} strokeColor="#e11d48" icon={<Clock className="w-3.5 h-3.5 text-[#fb7185]" />} />
+              <ArcGauge percentage={metrics.pendingPayments > 0 ? 45 : 0} strokeColor="#e11d48" icon={<Clock className="w-3.5 h-3.5 text-[#fb7185]" />} />
             </div>
             <div className="mt-4">
               <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-sans">
-                {formatCurrency(metrics.pendingPayments || 35000)}
+                {formatCurrency(metrics.pendingPayments)}
               </h3>
               <p className="text-xs text-[#fb7185] font-medium mt-1.5 flex items-center gap-1">
                 <AlertCircle className="w-3.5 h-3.5" /> {overdueCount} overdue accounts
@@ -188,17 +188,17 @@ export default function DashboardPage() {
                     Cash Realized
                   </span>
                   <div className="flex items-center gap-1.5 font-mono font-bold text-base sm:text-lg text-white">
-                    <span>1,25,000</span>
+                    <span>{metrics.totalRevenue.toLocaleString('en-IN')}</span>
                     <span className="text-[10px] uppercase px-1.5 py-0.5 rounded-full bg-black/30 text-rose-200 border border-white/10">INR</span>
                   </div>
                 </div>
 
                 <div className="my-6">
                   <span className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white font-sans block">
-                    +38%
+                    {metrics.totalRevenue > 0 ? '+38%' : '₹0'}
                   </span>
                   <p className="text-xs font-semibold text-rose-200/90 mt-1 flex items-center gap-1">
-                    grow since last day ↗
+                    {metrics.totalRevenue > 0 ? 'grow since last day ↗' : 'Real-time cleared revenue'}
                   </p>
                 </div>
 
@@ -219,14 +219,14 @@ export default function DashboardPage() {
                     Client Profit
                   </span>
                   <div className="flex items-center gap-1.5 font-mono font-bold text-base text-black">
-                    <span>83,300</span>
+                    <span>{metrics.netProfit.toLocaleString('en-IN')}</span>
                     <span className="text-[10px] uppercase px-1.5 py-0.5 rounded-full bg-zinc-200 text-zinc-800">INR</span>
                   </div>
                 </div>
 
                 <div className="my-6">
                   <span className="text-4xl sm:text-5xl font-extrabold tracking-tight text-black font-sans block">
-                    +28%
+                    {metrics.netProfit > 0 ? '+28%' : '0%'}
                   </span>
                   <p className="text-xs font-medium text-zinc-500 mt-1">
                     Net client profit margin
@@ -235,7 +235,7 @@ export default function DashboardPage() {
 
                 <div className="pt-4 border-t border-zinc-200 flex items-center justify-between text-xs text-zinc-600">
                   <span>Actual revenue cleared</span>
-                  <span className="font-bold text-black font-mono">₹1,25,000</span>
+                  <span className="font-bold text-black font-mono">{formatCurrency(metrics.totalRevenue)}</span>
                 </div>
               </div>
             </div>
@@ -311,7 +311,7 @@ export default function DashboardPage() {
           {/* 8. RIGHT SECTION (4 Cols) - Agency Performance + Service-Wise Revenue */}
           <div className="lg:col-span-4 h-full">
             <ExponentialGrowthChart
-              totalRevenue={metrics.totalRevenue || 125000}
+              totalRevenue={metrics.totalRevenue}
               onOpenPayment={() => setAddPaymentOpen(true)}
               onOpenInvoice={() => router.push('/invoices')}
             />

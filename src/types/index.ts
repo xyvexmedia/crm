@@ -82,6 +82,7 @@ export interface Expense {
   vendor?: string;
   campaign?: string;
   description: string;
+  notes?: string;
   receipt_url?: string;
   // Specific category metadata
   ad_account?: string;
