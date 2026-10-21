@@ -49,16 +49,16 @@ export default function DashboardPage() {
   // Bottom drawer tab
   const [bottomTab, setBottomTab] = useState<'upcoming' | 'recent' | 'breakdown'>('upcoming');
 
-  // Active counts for the 4 Agency Cards
-  const activeClientsCount = clients.filter((c) => c.status === 'active').length || 12;
-  const activeProjectsCount = projects.filter((p) => p.status === 'active').length || 8;
+  // Active counts for the 4 Agency Cards (Strictly dynamic from real database)
+  const activeClientsCount = clients.filter((c) => c.status === 'active').length;
+  const activeProjectsCount = projects.filter((p) => p.status === 'active').length;
   const paidInvoicesList = invoices.filter((inv) => inv.status === 'paid');
-  const paidInvoicesCount = paidInvoicesList.length > 0 ? paidInvoicesList.length : 18;
-  const paidInvoicesAmount = paidInvoicesList.reduce((s, inv) => s + Number(inv.total), 0) || 92000;
+  const paidInvoicesCount = paidInvoicesList.length;
+  const paidInvoicesAmount = paidInvoicesList.reduce((s, inv) => s + Number(inv.total), 0);
 
   const overdueList = clientReports.filter((r) => r.isOverdue);
-  const overdueCount = overdueList.length > 0 ? overdueList.length : 3;
-  const overduePendingAmount = overdueList.reduce((s, r) => s + r.pendingAmount, 0) || 12500;
+  const overdueCount = overdueList.length;
+  const overduePendingAmount = overdueList.reduce((s, r) => s + r.pendingAmount, 0);
 
   return (
     <AppLayout>
@@ -253,7 +253,7 @@ export default function DashboardPage() {
                     {activeClientsCount}
                   </span>
                   <p className="text-[11px] text-[#fb7185] font-semibold mt-1">
-                    +2 this month
+                    {activeClientsCount > 0 ? `+${activeClientsCount} this month` : 'No active clients'}
                   </p>
                 </div>
               </div>
@@ -269,7 +269,7 @@ export default function DashboardPage() {
                     {activeProjectsCount}
                   </span>
                   <p className="text-[11px] text-amber-400 font-semibold mt-1">
-                    3 due this week
+                    {activeProjectsCount > 0 ? `${activeProjectsCount} in progress` : '0 due this week'}
                   </p>
                 </div>
               </div>
@@ -312,6 +312,9 @@ export default function DashboardPage() {
           <div className="lg:col-span-4 h-full">
             <ExponentialGrowthChart
               totalRevenue={metrics.totalRevenue}
+              paidInvoicesCount={paidInvoicesCount}
+              projects={projects}
+              invoices={invoices}
               onOpenPayment={() => setAddPaymentOpen(true)}
               onOpenInvoice={() => router.push('/invoices')}
             />

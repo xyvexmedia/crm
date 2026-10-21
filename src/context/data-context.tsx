@@ -86,7 +86,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [payments, setPayments] = useState<Payment[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [notifications, setNotifications] = useState<AppNotification[]>(initialNotifications);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [settings, setSettings] = useState<CompanySettings>(initialSettings);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSupabaseConnected, setIsSupabaseConnected] = useState<boolean>(true);
@@ -165,6 +165,19 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   useEffect(() => {
+    // One-time auto-wipe of any legacy demo cache in client browser
+    if (typeof window !== 'undefined') {
+      const resetDone = localStorage.getItem('xyvex_cache_v3_wiped');
+      if (!resetDone) {
+        localStorage.removeItem(STORAGE_KEYS.CLIENTS);
+        localStorage.removeItem(STORAGE_KEYS.PROJECTS);
+        localStorage.removeItem(STORAGE_KEYS.PAYMENTS);
+        localStorage.removeItem(STORAGE_KEYS.EXPENSES);
+        localStorage.removeItem(STORAGE_KEYS.INVOICES);
+        localStorage.removeItem(STORAGE_KEYS.NOTIFICATIONS);
+        localStorage.setItem('xyvex_cache_v3_wiped', 'true');
+      }
+    }
     loadData();
     // Also load settings from localStorage
     if (typeof window !== 'undefined') {
@@ -665,6 +678,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setPayments([]);
     setExpenses([]);
     setInvoices([]);
+    setNotifications([]);
 
     if (typeof window !== 'undefined') {
       localStorage.removeItem(STORAGE_KEYS.CLIENTS);
@@ -672,6 +686,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       localStorage.removeItem(STORAGE_KEYS.PAYMENTS);
       localStorage.removeItem(STORAGE_KEYS.EXPENSES);
       localStorage.removeItem(STORAGE_KEYS.INVOICES);
+      localStorage.removeItem(STORAGE_KEYS.NOTIFICATIONS);
     }
   };
 

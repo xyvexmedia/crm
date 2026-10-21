@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -11,36 +11,61 @@ import {
 import { ArrowLeft, ArrowRight, TrendingUp, Sparkles, Layers } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 
+import { Project, Invoice } from '@/types';
+
 interface ExponentialGrowthChartProps {
   totalRevenue?: number;
+  paidInvoicesCount?: number;
+  projects?: Project[];
+  invoices?: Invoice[];
   onOpenPayment?: () => void;
   onOpenInvoice?: () => void;
 }
 
-const trajectoryData = [
-  { month: 'May', layer1: 10, layer2: 25, layer3: 45, layer4: 65 },
-  { month: 'Jun', layer1: 15, layer2: 35, layer3: 65, layer4: 82 },
-  { month: 'Jul', layer1: 22, layer2: 50, layer3: 95, layer4: 95 },
-  { month: 'Aug', layer1: 32, layer2: 75, layer3: 140, layer4: 110 },
-  { month: 'Sep', layer1: 50, layer2: 110, layer3: 200, layer4: 115 },
-  { month: 'Oct', layer1: 85, layer2: 170, layer3: 310, layer4: 125 },
+const emptyTrajectoryData = [
+  { month: 'May', layer1: 0, layer2: 0, layer3: 0, layer4: 0 },
+  { month: 'Jun', layer1: 0, layer2: 0, layer3: 0, layer4: 0 },
+  { month: 'Jul', layer1: 0, layer2: 0, layer3: 0, layer4: 0 },
+  { month: 'Aug', layer1: 0, layer2: 0, layer3: 0, layer4: 0 },
+  { month: 'Sep', layer1: 0, layer2: 0, layer3: 0, layer4: 0 },
+  { month: 'Oct', layer1: 0, layer2: 0, layer3: 0, layer4: 0 },
 ];
 
-const serviceBreakdown = [
-  { name: 'Meta Ads', amount: 45000, percentage: 36, color: '#e11d48' },
-  { name: 'Google Ads', amount: 25000, percentage: 20, color: '#be123c' },
-  { name: 'SEO', amount: 18000, percentage: 14, color: '#9f1239' },
-  { name: 'Social Media', amount: 15000, percentage: 12, color: '#881337' },
-  { name: 'Design', amount: 12000, percentage: 10, color: '#6b0726' },
-  { name: 'Web Development', amount: 10000, percentage: 8, color: '#4c0519' },
+const serviceCategories = [
+  { name: 'Meta Ads', color: '#e11d48' },
+  { name: 'Google Ads', color: '#be123c' },
+  { name: 'SEO', color: '#9f1239' },
+  { name: 'Social Media', color: '#881337' },
+  { name: 'Design', color: '#6b0726' },
+  { name: 'Web Development', color: '#4c0519' },
 ];
 
 export const ExponentialGrowthChart: React.FC<ExponentialGrowthChartProps> = ({
-  totalRevenue = 125000,
+  totalRevenue = 0,
+  paidInvoicesCount = 0,
+  projects = [],
+  invoices = [],
   onOpenPayment,
   onOpenInvoice,
 }) => {
   const [carouselIndex, setCarouselIndex] = useState(0);
+
+  // Compute live breakdown per service
+  const serviceBreakdown = useMemo(() => {
+    return serviceCategories.map((s) => {
+      const serviceProjects = projects.filter(
+        (p) => p.service?.toLowerCase().includes(s.name.toLowerCase())
+      );
+      const amount = serviceProjects.reduce((sum, p) => sum + Number(p.budget || 0), 0);
+      const percentage = totalRevenue > 0 ? Math.round((amount / totalRevenue) * 100) : 0;
+      return {
+        name: s.name,
+        amount,
+        percentage,
+        color: s.color,
+      };
+    });
+  }, [projects, totalRevenue]);
 
   return (
     <div className="neo-card-dark p-6 sm:p-7 flex flex-col justify-between h-full space-y-5">
@@ -60,7 +85,7 @@ export const ExponentialGrowthChart: React.FC<ExponentialGrowthChartProps> = ({
             {formatCurrency(totalRevenue)}
           </span>
           <span className="text-xs text-[#fb7185] font-semibold flex items-center gap-0.5 bg-[#e11d48]/10 px-2 py-0.5 rounded-full">
-            <TrendingUp className="w-3.5 h-3.5" /> +18.4% MoM
+            <TrendingUp className="w-3.5 h-3.5" /> {totalRevenue > 0 ? '+18.4% MoM' : '0.0% MoM'}
           </span>
         </div>
         <p className="text-[11px] text-zinc-400 mt-1 font-medium">Revenue Growth Trajectory</p>
@@ -70,7 +95,7 @@ export const ExponentialGrowthChart: React.FC<ExponentialGrowthChartProps> = ({
       <div className="relative">
         <div className="h-40 sm:h-44 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={trajectoryData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+            <AreaChart data={emptyTrajectoryData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="crimsonGlowGrad4" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#e11d48" stopOpacity={0.85} />
@@ -190,10 +215,10 @@ export const ExponentialGrowthChart: React.FC<ExponentialGrowthChartProps> = ({
           >
             <div>
               <span className="text-base font-bold font-sans tracking-tight text-white block">
-                ₹15,000
+                {formatCurrency(totalRevenue)}
               </span>
               <span className="text-[10px] font-semibold text-rose-200 flex items-center gap-0.5 mt-0.5">
-                +8.92% <TrendingUp className="w-3 h-3" />
+                {totalRevenue > 0 ? '+8.92%' : '₹0'} <TrendingUp className="w-3 h-3" />
               </span>
             </div>
             <p className="text-[10px] font-semibold text-white mt-3 leading-tight">
@@ -207,10 +232,10 @@ export const ExponentialGrowthChart: React.FC<ExponentialGrowthChartProps> = ({
           >
             <div>
               <span className="text-base font-bold font-sans tracking-tight text-black block">
-                4 Invoices
+                {paidInvoicesCount} Invoices
               </span>
               <span className="text-[10px] font-semibold text-[#e11d48] flex items-center gap-0.5 mt-0.5">
-                +5.23% <TrendingUp className="w-3 h-3" />
+                {paidInvoicesCount > 0 ? '+5.23%' : '0 paid'} <TrendingUp className="w-3 h-3" />
               </span>
             </div>
             <p className="text-[10px] font-semibold text-zinc-800 mt-3 leading-tight">

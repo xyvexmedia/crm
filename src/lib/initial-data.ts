@@ -472,35 +472,7 @@ export const initialInvoices: Invoice[] = [
   },
 ];
 
-export const initialNotifications: AppNotification[] = [
-  {
-    id: 'notif-1',
-    title: 'Payment Received',
-    message: '₹15,000 received from Naadan Foodstuff via UPI (Final settlement).',
-    type: 'payment',
-    is_read: false,
-    created_at: '2026-10-16T18:00:00Z',
-    link: '/payments',
-  },
-  {
-    id: 'notif-2',
-    title: 'Upcoming Billing Due',
-    message: 'ABC Company billing is due on 23 Oct (₹5,000 pending).',
-    type: 'billing',
-    is_read: false,
-    created_at: '2026-10-18T09:00:00Z',
-    link: '/clients/c1',
-  },
-  {
-    id: 'notif-3',
-    title: 'Expense Recorded',
-    message: '₹2,500 recorded for Vercel & Supabase hosting.',
-    type: 'info',
-    is_read: true,
-    created_at: '2026-10-01T09:05:00Z',
-    link: '/expenses',
-  },
-];
+export const initialNotifications: AppNotification[] = [];
 
 export const initialSettings: CompanySettings = {
   company_name: 'XYVEX Creative Agency',
