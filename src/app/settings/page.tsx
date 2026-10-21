@@ -84,9 +84,9 @@ export default function SettingsPage() {
   };
 
   const handleClearAllData = async () => {
-    if (confirm('ഡാറ്റാബേസിലെ എല്ലാ ഡാറ്റയും ഒഴിവാക്കി ക്ലീൻ ചെയ്യണമെന്നുറപ്പാണോ? (Clear all database records?)')) {
+    if (confirm('Are you sure you want to clear all database records? This action cannot be undone.')) {
       await clearAllData();
-      triggerSaveNotification('ഡാറ്റാബേസ് പൂർണ്ണമായി ക്ലിയർ ചെയ്തു (All data purged)');
+      triggerSaveNotification('All database records purged successfully');
     }
   };
 
@@ -159,7 +159,7 @@ export default function SettingsPage() {
             }`}
           >
             <Database className="w-3.5 h-3.5" />
-            <span>Database & Demo</span>
+            <span>Database & Cloud</span>
           </button>
         </div>
 
@@ -390,7 +390,7 @@ export default function SettingsPage() {
                 </div>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>സൂപ്പർബേസ് കണക്റ്റഡ് (Supabase Connected)</span>
+                  <span>Supabase Connected</span>
                 </span>
               </div>
               <p className="text-zinc-400 text-[11px] leading-relaxed">
@@ -403,7 +403,7 @@ export default function SettingsPage() {
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-white block">Clean Production Database</span>
                   <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
-                    ഡെമോ ഒഴിവാക്കി (No Demo Data)
+                    Live Production Mode
                   </span>
                 </div>
                 <span className="text-zinc-400 text-[11px] mt-1 block">
@@ -417,7 +417,7 @@ export default function SettingsPage() {
                 title="Wipe database to completely clean state"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                <span>ഡാറ്റ ക്ലിയർ ചെയ്യുക (Purge Data)</span>
+                <span>Purge Database</span>
               </button>
             </div>
           </div>
