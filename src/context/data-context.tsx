@@ -70,6 +70,7 @@ interface DataContextType {
   
   // Utilities
   resetToSampleData: () => void;
+  clearAllData: () => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -85,40 +86,94 @@ const STORAGE_KEYS = {
 };
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [clients, setClients] = useState<Client[]>(initialClients);
-  const [projects, setProjects] = useState<Project[]>(initialProjects);
-  const [payments, setPayments] = useState<Payment[]>(initialPayments);
-  const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
-  const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
-  const [notifications, setNotifications] = useState<AppNotification[]>(initialNotifications);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [settings, setSettings] = useState<CompanySettings>(initialSettings);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Initialize from LocalStorage or Supabase
+  // Initialize directly from Supabase
   useEffect(() => {
-    try {
-      if (typeof window !== 'undefined') {
-        const storedClients = localStorage.getItem(STORAGE_KEYS.CLIENTS);
-        const storedProjects = localStorage.getItem(STORAGE_KEYS.PROJECTS);
-        const storedPayments = localStorage.getItem(STORAGE_KEYS.PAYMENTS);
-        const storedExpenses = localStorage.getItem(STORAGE_KEYS.EXPENSES);
-        const storedInvoices = localStorage.getItem(STORAGE_KEYS.INVOICES);
-        const storedNotifications = localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS);
-        const storedSettings = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+    let isMounted = true;
 
-        if (storedClients) setClients(JSON.parse(storedClients));
-        if (storedProjects) setProjects(JSON.parse(storedProjects));
-        if (storedPayments) setPayments(JSON.parse(storedPayments));
-        if (storedExpenses) setExpenses(JSON.parse(storedExpenses));
-        if (storedInvoices) setInvoices(JSON.parse(storedInvoices));
-        if (storedNotifications) setNotifications(JSON.parse(storedNotifications));
-        if (storedSettings) setSettings(JSON.parse(storedSettings));
+    async function loadFromSupabase() {
+      try {
+        setIsLoading(true);
+
+        const [
+          { data: sbClients, error: cErr },
+          { data: sbProjects, error: pErr },
+          { data: sbPayments, error: payErr },
+          { data: sbExpenses, error: expErr },
+          { data: sbInvoices, error: invErr },
+        ] = await Promise.all([
+          supabase.from('clients').select('*').order('created_at', { ascending: false }),
+          supabase.from('projects').select('*').order('created_at', { ascending: false }),
+          supabase.from('payments').select('*').order('payment_date', { ascending: false }),
+          supabase.from('expenses').select('*').order('expense_date', { ascending: false }),
+          supabase.from('invoices').select('*').order('invoice_date', { ascending: false }),
+        ]);
+
+        if (isMounted) {
+          if (!cErr && sbClients !== null) {
+            setClients(sbClients);
+            persist(STORAGE_KEYS.CLIENTS, sbClients);
+          } else if (typeof window !== 'undefined') {
+            const stored = localStorage.getItem(STORAGE_KEYS.CLIENTS);
+            if (stored) setClients(JSON.parse(stored));
+          }
+
+          if (!pErr && sbProjects !== null) {
+            setProjects(sbProjects);
+            persist(STORAGE_KEYS.PROJECTS, sbProjects);
+          } else if (typeof window !== 'undefined') {
+            const stored = localStorage.getItem(STORAGE_KEYS.PROJECTS);
+            if (stored) setProjects(JSON.parse(stored));
+          }
+
+          if (!payErr && sbPayments !== null) {
+            setPayments(sbPayments);
+            persist(STORAGE_KEYS.PAYMENTS, sbPayments);
+          } else if (typeof window !== 'undefined') {
+            const stored = localStorage.getItem(STORAGE_KEYS.PAYMENTS);
+            if (stored) setPayments(JSON.parse(stored));
+          }
+
+          if (!expErr && sbExpenses !== null) {
+            setExpenses(sbExpenses);
+            persist(STORAGE_KEYS.EXPENSES, sbExpenses);
+          } else if (typeof window !== 'undefined') {
+            const stored = localStorage.getItem(STORAGE_KEYS.EXPENSES);
+            if (stored) setExpenses(JSON.parse(stored));
+          }
+
+          if (!invErr && sbInvoices !== null) {
+            setInvoices(sbInvoices);
+            persist(STORAGE_KEYS.INVOICES, sbInvoices);
+          } else if (typeof window !== 'undefined') {
+            const stored = localStorage.getItem(STORAGE_KEYS.INVOICES);
+            if (stored) setInvoices(JSON.parse(stored));
+          }
+        }
+      } catch (e) {
+        console.warn('Supabase sync notice:', e);
+        if (typeof window !== 'undefined') {
+          const stored = localStorage.getItem(STORAGE_KEYS.CLIENTS);
+          if (stored) setClients(JSON.parse(stored));
+        }
+      } finally {
+        if (isMounted) setIsLoading(false);
       }
-    } catch (e) {
-      console.warn('LocalStorage load error, using default seed data:', e);
-    } finally {
-      setIsLoading(false);
     }
+
+    loadFromSupabase();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Save changes to localStorage
@@ -443,6 +498,33 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const clearAllData = async () => {
+    setClients([]);
+    setProjects([]);
+    setPayments([]);
+    setExpenses([]);
+    setInvoices([]);
+    setNotifications([]);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(STORAGE_KEYS.CLIENTS);
+      localStorage.removeItem(STORAGE_KEYS.PROJECTS);
+      localStorage.removeItem(STORAGE_KEYS.PAYMENTS);
+      localStorage.removeItem(STORAGE_KEYS.EXPENSES);
+      localStorage.removeItem(STORAGE_KEYS.INVOICES);
+      localStorage.removeItem(STORAGE_KEYS.NOTIFICATIONS);
+    }
+    try {
+      await supabase.from('expenses').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('payments').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('invoice_items').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('invoices').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('projects').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('clients').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    } catch (e) {
+      console.warn('Supabase wipe notice:', e);
+    }
+  };
+
   return (
     <DataContext.Provider
       value={{
@@ -476,6 +558,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         markAllNotificationsRead,
         updateSettings,
         resetToSampleData,
+        clearAllData,
       }}
     >
       {children}

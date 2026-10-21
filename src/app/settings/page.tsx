@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Settings,
   Building,
@@ -11,16 +11,43 @@ import {
   CheckCircle2,
   Database,
   Lock,
+  Trash2,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useData } from '@/context/data-context';
 import { useAuth } from '@/context/auth-context';
+import { supabase, SUPABASE_PROJECT_URL } from '@/lib/supabase';
 
 export default function SettingsPage() {
-  const { settings, updateSettings, resetToSampleData } = useData();
+  const { settings, updateSettings, resetToSampleData, clearAllData } = useData();
   const { user, updateUser } = useAuth();
 
   const [activeTab, setActiveTab] = useState<'company' | 'invoice' | 'profile' | 'system'>('company');
+
+  // Live Supabase Status
+  const [dbStatus, setDbStatus] = useState<'checking' | 'connected' | 'error'>('checking');
+
+  useEffect(() => {
+    let isMounted = true;
+    const verifySupabase = async () => {
+      try {
+        const { error } = await supabase.from('clients').select('id').limit(1);
+        if (isMounted) {
+          if (!error) {
+            setDbStatus('connected');
+          } else {
+            setDbStatus('error');
+          }
+        }
+      } catch {
+        if (isMounted) setDbStatus('error');
+      }
+    };
+    verifySupabase();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Company Form State
   const [companyName, setCompanyName] = useState(settings.company_name);
