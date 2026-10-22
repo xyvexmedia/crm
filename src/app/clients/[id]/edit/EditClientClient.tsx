@@ -3,7 +3,17 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Save } from 'lucide-react';
+import {
+  ArrowLeft,
+  Save,
+  Building2,
+  Phone,
+  Mail,
+  MapPin,
+  Calendar,
+  FileText,
+  Activity,
+} from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useData } from '@/context/data-context';
 import { ClientStatus } from '@/types';
@@ -20,7 +30,6 @@ export default function EditClientPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [whatsapp, setWhatsapp] = useState('');
   const [address, setAddress] = useState('');
   const [billingDate, setBillingDate] = useState('');
   const [status, setStatus] = useState<ClientStatus>('active');
@@ -34,8 +43,7 @@ export default function EditClientPage() {
       setCompanyName(client.company_name);
       setName(client.name);
       setEmail(client.email || '');
-      setPhone(client.phone || '');
-      setWhatsapp(client.whatsapp || '');
+      setPhone(client.phone || client.whatsapp || '');
       setAddress(client.address || '');
       setBillingDate(client.billing_date || '');
       setStatus(client.status);
@@ -58,8 +66,9 @@ export default function EditClientPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!companyName.trim() || !name.trim()) {
-      setError('Company Name and Contact Person are required.');
+    const trimmedCompany = companyName.trim();
+    if (!trimmedCompany) {
+      setError('Client / Company Name is required.');
       return;
     }
 
@@ -68,11 +77,11 @@ export default function EditClientPage() {
 
     try {
       await updateClient(client.id, {
-        company_name: companyName.trim(),
-        name: name.trim(),
+        company_name: trimmedCompany,
+        name: name.trim() || trimmedCompany,
         email: email.trim(),
         phone: phone.trim(),
-        whatsapp: whatsapp.trim(),
+        whatsapp: phone.trim(),
         address: address.trim(),
         billing_date: billingDate || undefined,
         status,
@@ -87,128 +96,154 @@ export default function EditClientPage() {
 
   return (
     <AppLayout>
-      <div className="max-w-2xl mx-auto space-y-6">
-        <div className="flex items-center gap-3 pb-3 border-b border-white/[0.08]">
-          <Link
-            href={`/clients/${client.id}`}
-            className="p-2 rounded-lg bg-white/[0.04] hover:bg-white/[0.09] text-zinc-400 hover:text-white transition"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Link>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-white">Edit Client</h1>
-            <p className="text-xs text-zinc-400">Update corporate profile and billing cycle</p>
+      <div className="max-w-xl mx-auto pb-24 sm:pb-12 space-y-4">
+        {/* Navigation Header */}
+        <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+          <div className="flex items-center gap-3">
+            <Link
+              href={`/clients/${client.id}`}
+              className="w-9 h-9 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-zinc-300 hover:text-white flex items-center justify-center transition active:scale-95"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Link>
+            <div>
+              <h1 className="text-lg sm:text-xl font-bold tracking-tight text-white">
+                Edit Client
+              </h1>
+              <p className="text-xs text-zinc-400">{client.company_name}</p>
+            </div>
           </div>
         </div>
 
         {error && (
-          <div className="p-3 text-xs rounded-lg bg-rose-500/10 border border-rose-500/25 text-rose-300">
+          <div className="p-3 text-xs rounded-xl bg-rose-500/10 border border-rose-500/25 text-rose-300">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="glass-panel p-6 space-y-4 text-xs">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="bg-[#141419]/90 border border-white/10 rounded-2xl p-4 sm:p-6 shadow-xl space-y-4 text-xs">
+            {/* Company Name */}
             <div>
-              <label className="block text-zinc-300 mb-1 font-medium">Company Name *</label>
-              <input
-                type="text"
-                required
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-                className="glass-input"
-              />
+              <label className="block text-zinc-300 mb-1.5 font-semibold">
+                Client / Company Name <span className="text-[#e11d48]">*</span>
+              </label>
+              <div className="relative flex items-center">
+                <Building2 className="w-4 h-4 text-zinc-500 absolute left-3.5 pointer-events-none" />
+                <input
+                  type="text"
+                  required
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  className="glass-input glass-input-with-icon !py-2.5 text-sm font-medium"
+                />
+              </div>
             </div>
+
+            {/* Phone Number */}
             <div>
-              <label className="block text-zinc-300 mb-1 font-medium">Contact Person *</label>
+              <label className="block text-zinc-300 mb-1.5 font-semibold">
+                Phone Number (Call & WhatsApp)
+              </label>
+              <div className="relative flex items-center">
+                <Phone className="w-4 h-4 text-zinc-500 absolute left-3.5 pointer-events-none" />
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+91 98470 00000"
+                  className="glass-input glass-input-with-icon !py-2.5 text-sm font-medium"
+                />
+              </div>
+            </div>
+
+            {/* Status */}
+            <div>
+              <label className="block text-zinc-300 mb-1.5 font-semibold">Status</label>
+              <div className="relative flex items-center">
+                <Activity className="w-4 h-4 text-zinc-500 absolute left-3.5 pointer-events-none" />
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value as ClientStatus)}
+                  className="glass-input glass-input-with-icon !py-2.5 text-sm bg-[#1a1a1e] text-white"
+                >
+                  <option value="active">Active</option>
+                  <option value="lead">Lead</option>
+                  <option value="completed">Completed</option>
+                  <option value="paused">Paused</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Contact Person (Optional) */}
+            <div>
+              <label className="block text-zinc-300 mb-1 font-medium">Contact Person</label>
               <input
                 type="text"
-                required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="glass-input"
+                placeholder="Manager / Owner name"
+                className="glass-input !py-2 text-xs"
               />
             </div>
+
+            {/* Email */}
             <div>
-              <label className="block text-zinc-300 mb-1 font-medium">Phone</label>
-              <input
-                type="text"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="glass-input"
-              />
+              <label className="block text-zinc-300 mb-1 font-medium">Email Address</label>
+              <div className="relative flex items-center">
+                <Mail className="w-3.5 h-3.5 text-zinc-500 absolute left-3 pointer-events-none" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="contact@brand.com"
+                  className="glass-input !pl-9 !py-2 text-xs"
+                />
+              </div>
             </div>
+
+            {/* City / Address */}
             <div>
-              <label className="block text-zinc-300 mb-1 font-medium">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="glass-input"
-              />
+              <label className="block text-zinc-300 mb-1 font-medium">City / Address</label>
+              <div className="relative flex items-center">
+                <MapPin className="w-3.5 h-3.5 text-zinc-500 absolute left-3 pointer-events-none" />
+                <input
+                  type="text"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Kochi, Kerala"
+                  className="glass-input !pl-9 !py-2 text-xs"
+                />
+              </div>
             </div>
+
+            {/* Notes */}
             <div>
-              <label className="block text-zinc-300 mb-1 font-medium">WhatsApp</label>
-              <input
-                type="text"
-                value={whatsapp}
-                onChange={(e) => setWhatsapp(e.target.value)}
-                className="glass-input"
-              />
-            </div>
-            <div>
-              <label className="block text-zinc-300 mb-1 font-medium">Status</label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value as ClientStatus)}
-                className="glass-input bg-zinc-900"
-              >
-                <option value="active">Active</option>
-                <option value="lead">Lead</option>
-                <option value="completed">Completed</option>
-                <option value="paused">Paused</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-            </div>
-            <div className="sm:col-span-2">
-              <label className="block text-zinc-300 mb-1 font-medium">Next Billing Date</label>
-              <input
-                type="date"
-                value={billingDate}
-                onChange={(e) => setBillingDate(e.target.value)}
-                className="glass-input"
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <label className="block text-zinc-300 mb-1 font-medium">Office Address</label>
-              <input
-                type="text"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                className="glass-input"
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <label className="block text-zinc-300 mb-1 font-medium">Internal Notes</label>
+              <label className="block text-zinc-300 mb-1 font-medium">Notes & Remarks</label>
               <textarea
-                rows={3}
+                rows={2}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="glass-input resize-none"
+                placeholder="Internal notes..."
+                className="glass-input !py-2 text-xs resize-none"
               />
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
-            <Link href={`/clients/${client.id}`} className="glass-button-secondary py-2 px-4">
+          <div className="pt-2 flex items-center gap-3">
+            <Link
+              href={`/clients/${client.id}`}
+              className="w-1/3 py-3 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-zinc-300 text-xs font-semibold text-center transition"
+            >
               Cancel
             </Link>
             <button
               type="submit"
               disabled={loading}
-              className="glass-button-primary py-2 px-5"
+              className="w-2/3 py-3 rounded-xl bg-gradient-to-r from-[#e11d48] to-[#be123c] hover:brightness-110 active:scale-[0.98] text-white text-xs font-bold shadow-[0_4px_20px_rgba(225,29,72,0.35)] transition flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              <Save className="w-4 h-4" />
+              <Save className="w-4 h-4 stroke-[2.5]" />
               <span>{loading ? 'Saving...' : 'Save Changes'}</span>
             </button>
           </div>
