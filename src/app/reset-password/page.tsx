@@ -66,30 +66,30 @@ export default function ResetPasswordPage() {
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             <div>
               <label className="block text-zinc-300 mb-1 font-medium">New Password</label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <div className="relative flex items-center">
+                <Lock className="w-4 h-4 text-zinc-500 absolute left-3.5 pointer-events-none z-10" />
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="At least 6 characters"
-                  className="glass-input pl-9"
+                  className="glass-input glass-input-with-icon py-2.5 text-xs placeholder:text-zinc-500"
                 />
               </div>
             </div>
 
             <div>
               <label className="block text-zinc-300 mb-1 font-medium">Confirm New Password</label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <div className="relative flex items-center">
+                <Lock className="w-4 h-4 text-zinc-500 absolute left-3.5 pointer-events-none z-10" />
                 <input
                   type="password"
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Repeat new password"
-                  className="glass-input pl-9"
+                  className="glass-input glass-input-with-icon py-2.5 text-xs placeholder:text-zinc-500"
                 />
               </div>
             </div>

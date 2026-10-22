@@ -139,6 +139,11 @@ body {
   width: 100%;
 }
 
+.glass-input-with-icon {
+  padding-left: 2.85rem !important;
+  padding-right: 1rem !important;
+}
+
 .glass-input:focus {
   border-color: #e11d48;
   background-color: #202026;

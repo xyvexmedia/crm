@@ -55,15 +55,15 @@ export default function ForgotPasswordPage() {
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             <div>
               <label className="block text-zinc-300 mb-1 font-medium">Email Address</label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <div className="relative flex items-center">
+                <Mail className="w-4 h-4 text-zinc-500 absolute left-3.5 pointer-events-none z-10" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="salih@xyvex.agency"
-                  className="glass-input pl-9"
+                  className="glass-input glass-input-with-icon py-2.5 text-xs placeholder:text-zinc-500"
                 />
               </div>
             </div>
