@@ -128,14 +128,14 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-fade"
+      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-fade overflow-hidden"
       onClick={(e) => {
         if (e.target === e.currentTarget && !loading) onClose();
       }}
     >
-      <div className="relative w-full max-w-lg bg-[#111116] border border-white/10 rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 shadow-2xl max-h-[92vh] sm:max-h-[90vh] flex flex-col my-0 sm:my-8 animate-fade">
-        {/* Modal Header */}
-        <div className="flex items-center justify-between pb-3.5 mb-3 border-b border-white/[0.08] shrink-0">
+      <div className="relative w-full max-w-lg bg-[#111116] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[88dvh] sm:max-h-[85vh] flex flex-col min-h-0 overflow-hidden animate-fade">
+        {/* Fixed Modal Header */}
+        <div className="px-5 pt-4 pb-3 border-b border-white/[0.08] shrink-0 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-[#e11d48]/15 border border-[#e11d48]/30 flex items-center justify-center text-[#e11d48]">
               <Sparkles className="w-4 h-4" />
@@ -160,169 +160,175 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
         </div>
 
         {error && (
-          <div className="p-3 mb-3 text-xs rounded-xl bg-rose-500/10 border border-rose-500/25 text-rose-300 shrink-0">
+          <div className="mx-5 mt-3 p-3 text-xs rounded-xl bg-rose-500/10 border border-rose-500/25 text-rose-300 shrink-0">
             {error}
           </div>
         )}
 
-        {/* Scrollable Form Body */}
-        <form onSubmit={handleSubmit} className="overflow-y-auto space-y-3.5 pr-1 flex-1 text-xs">
-          {/* 1. Company / Brand Name* */}
-          <div>
-            <label className="block text-zinc-300 mb-1.5 font-semibold">
-              Company / Brand Name <span className="text-[#e11d48]">*</span>
-            </label>
-            <div className="relative flex items-center">
-              <Building2 className="w-4 h-4 text-zinc-500 absolute left-3.5 pointer-events-none" />
-              <input
-                type="text"
-                required
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-                placeholder="e.g. Apex Healthcare, Zenith Cafe"
-                className="glass-input glass-input-with-icon !py-2.5 text-sm font-medium placeholder:text-zinc-500"
-              />
-            </div>
-          </div>
-
-          {/* 2. Phone Number & 3. Email */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* Form with Flex Layout: Scrollable body + Fixed sticky footer */}
+        <form onSubmit={handleSubmit} className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          {/* Scrollable Form Body */}
+          <div
+            className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-4 space-y-3.5 text-xs touch-pan-y"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+          >
+            {/* 1. Company / Brand Name* */}
             <div>
               <label className="block text-zinc-300 mb-1.5 font-semibold">
-                Phone Number
+                Company / Brand Name <span className="text-[#e11d48]">*</span>
               </label>
               <div className="relative flex items-center">
-                <Phone className="w-4 h-4 text-zinc-500 absolute left-3.5 pointer-events-none" />
+                <Building2 className="w-4 h-4 text-zinc-500 absolute left-3.5 pointer-events-none" />
                 <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+91 98470 00000"
+                  type="text"
+                  required
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  placeholder="e.g. Apex Healthcare, Zenith Cafe"
                   className="glass-input glass-input-with-icon !py-2.5 text-sm font-medium placeholder:text-zinc-500"
                 />
               </div>
             </div>
 
+            {/* 2. Phone Number & 3. Email */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-zinc-300 mb-1.5 font-semibold">
+                  Phone Number
+                </label>
+                <div className="relative flex items-center">
+                  <Phone className="w-4 h-4 text-zinc-500 absolute left-3.5 pointer-events-none" />
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+91 98470 00000"
+                    className="glass-input glass-input-with-icon !py-2.5 text-sm font-medium placeholder:text-zinc-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-zinc-300 mb-1.5 font-semibold">
+                  Email
+                </label>
+                <div className="relative flex items-center">
+                  <Mail className="w-4 h-4 text-zinc-500 absolute left-3.5 pointer-events-none" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="contact@brand.com"
+                    className="glass-input glass-input-with-icon !py-2.5 text-sm font-medium placeholder:text-zinc-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 4. Status & 5. Service */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-zinc-300 mb-1.5 font-semibold">
+                  Status
+                </label>
+                <div className="relative flex items-center">
+                  <Activity className="w-4 h-4 text-zinc-500 absolute left-3.5 pointer-events-none" />
+                  <select
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value as ClientStatus)}
+                    className="glass-input glass-input-with-icon !py-2.5 text-sm bg-[#1a1a1e] text-white cursor-pointer"
+                  >
+                    <option value="active">Active</option>
+                    <option value="pending">Pending</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-zinc-300 mb-1.5 font-semibold">
+                  Service
+                </label>
+                <div className="relative flex items-center">
+                  <Briefcase className="w-4 h-4 text-zinc-500 absolute left-3.5 pointer-events-none" />
+                  <select
+                    value={service}
+                    onChange={(e) => setService(e.target.value)}
+                    className="glass-input glass-input-with-icon !py-2.5 text-sm bg-[#1a1a1e] text-white cursor-pointer"
+                  >
+                    {SERVICES.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* 6. Total Budget (₹) & 7. Advance Payment (₹) */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-zinc-300 mb-1.5 font-semibold">
+                  Total Budget (₹)
+                </label>
+                <div className="relative flex items-center">
+                  <span className="text-zinc-400 font-bold absolute left-3.5 text-sm pointer-events-none">
+                    ₹
+                  </span>
+                  <input
+                    type="number"
+                    value={budget}
+                    onChange={(e) => setBudget(e.target.value)}
+                    placeholder="e.g. 45000"
+                    className="glass-input !pl-8 !pr-3 !py-2.5 text-sm font-medium font-mono placeholder:text-zinc-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-zinc-300 mb-1.5 font-semibold">
+                  Advance Payment (₹)
+                </label>
+                <div className="relative flex items-center">
+                  <span className="text-zinc-400 font-bold absolute left-3.5 text-sm pointer-events-none">
+                    ₹
+                  </span>
+                  <input
+                    type="number"
+                    value={advancePayment}
+                    onChange={(e) => setAdvancePayment(e.target.value)}
+                    placeholder="e.g. 20000"
+                    className="glass-input !pl-8 !pr-3 !py-2.5 text-sm font-medium font-mono placeholder:text-zinc-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 8. Billing / Due Date */}
             <div>
               <label className="block text-zinc-300 mb-1.5 font-semibold">
-                Email
+                Billing / Due Date
               </label>
               <div className="relative flex items-center">
-                <Mail className="w-4 h-4 text-zinc-500 absolute left-3.5 pointer-events-none" />
+                <Calendar className="w-4 h-4 text-zinc-500 absolute left-3.5 pointer-events-none" />
                 <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="contact@brand.com"
-                  className="glass-input glass-input-with-icon !py-2.5 text-sm font-medium placeholder:text-zinc-500"
+                  type="date"
+                  value={billingDate}
+                  onChange={(e) => setBillingDate(e.target.value)}
+                  className="glass-input glass-input-with-icon !py-2.5 text-sm text-white"
                 />
               </div>
             </div>
           </div>
 
-          {/* 4. Status & 5. Service */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-zinc-300 mb-1.5 font-semibold">
-                Status
-              </label>
-              <div className="relative flex items-center">
-                <Activity className="w-4 h-4 text-zinc-500 absolute left-3.5 pointer-events-none" />
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as ClientStatus)}
-                  className="glass-input glass-input-with-icon !py-2.5 text-sm bg-[#1a1a1e] text-white cursor-pointer"
-                >
-                  <option value="active">Active</option>
-                  <option value="pending">Pending</option>
-                  <option value="completed">Completed</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-zinc-300 mb-1.5 font-semibold">
-                Service
-              </label>
-              <div className="relative flex items-center">
-                <Briefcase className="w-4 h-4 text-zinc-500 absolute left-3.5 pointer-events-none" />
-                <select
-                  value={service}
-                  onChange={(e) => setService(e.target.value)}
-                  className="glass-input glass-input-with-icon !py-2.5 text-sm bg-[#1a1a1e] text-white cursor-pointer"
-                >
-                  {SERVICES.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* 6. Total Budget (₹) & 7. Advance Payment (₹) */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-zinc-300 mb-1.5 font-semibold">
-                Total Budget (₹)
-              </label>
-              <div className="relative flex items-center">
-                <span className="text-zinc-400 font-bold absolute left-3.5 text-sm pointer-events-none">
-                  ₹
-                </span>
-                <input
-                  type="number"
-                  value={budget}
-                  onChange={(e) => setBudget(e.target.value)}
-                  placeholder="e.g. 45000"
-                  className="glass-input !pl-8 !pr-3 !py-2.5 text-sm font-medium font-mono placeholder:text-zinc-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-zinc-300 mb-1.5 font-semibold">
-                Advance Payment (₹)
-              </label>
-              <div className="relative flex items-center">
-                <span className="text-zinc-400 font-bold absolute left-3.5 text-sm pointer-events-none">
-                  ₹
-                </span>
-                <input
-                  type="number"
-                  value={advancePayment}
-                  onChange={(e) => setAdvancePayment(e.target.value)}
-                  placeholder="e.g. 20000"
-                  className="glass-input !pl-8 !pr-3 !py-2.5 text-sm font-medium font-mono placeholder:text-zinc-500"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* 8. Billing / Due Date */}
-          <div>
-            <label className="block text-zinc-300 mb-1.5 font-semibold">
-              Billing / Due Date
-            </label>
-            <div className="relative flex items-center">
-              <Calendar className="w-4 h-4 text-zinc-500 absolute left-3.5 pointer-events-none" />
-              <input
-                type="date"
-                value={billingDate}
-                onChange={(e) => setBillingDate(e.target.value)}
-                className="glass-input glass-input-with-icon !py-2.5 text-sm text-white"
-              />
-            </div>
-          </div>
-
-          {/* Sticky Actions */}
-          <div className="pt-3 border-t border-white/10 flex items-center justify-end gap-3 shrink-0">
+          {/* Fixed Footer: Always visible at bottom, never cut off */}
+          <div className="px-5 py-3.5 pb-[max(0.875rem,env(safe-area-inset-bottom))] border-t border-white/10 bg-[#141419] shrink-0 flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="py-2.5 px-4 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-zinc-300 hover:text-white text-xs font-semibold transition"
+              className="py-2.5 px-4 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-zinc-300 hover:text-white text-xs font-semibold transition active:scale-95"
             >
               Cancel
             </button>

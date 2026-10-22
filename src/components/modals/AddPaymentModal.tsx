@@ -67,42 +67,47 @@ export const AddPaymentModal: React.FC<AddPaymentModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade"
+      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-fade overflow-hidden"
       onClick={(e) => {
         if (e.target === e.currentTarget && !loading) onClose();
       }}
     >
-      <div className="relative w-full max-w-lg glass-panel bg-[#0d0d12]/95 border border-white/20 p-6 shadow-2xl">
-        <button
-          onClick={onClose}
-          disabled={loading}
-          className="absolute top-4 right-4 p-1 text-zinc-400 hover:text-white transition"
-          aria-label="Close modal"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        <div className="flex items-center gap-2 mb-4 pb-3 border-b border-white/10">
-          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-            <ArrowDownLeft className="w-4 h-4" />
+      <div className="relative w-full max-w-lg bg-[#111116] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[88dvh] sm:max-h-[85vh] flex flex-col min-h-0 overflow-hidden animate-fade">
+        <div className="px-5 pt-4 pb-3 border-b border-white/[0.08] shrink-0 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+              <ArrowDownLeft className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-white tracking-tight">
+                Record Client Payment
+              </h2>
+              <p className="text-[11px] text-zinc-400">
+                Log realized revenue received from client
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-base font-semibold text-white tracking-wide">
-              Record Client Payment
-            </h2>
-            <p className="text-xs text-zinc-400">
-              Log realized revenue received from client
-            </p>
-          </div>
+          <button
+            onClick={onClose}
+            disabled={loading}
+            className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition active:scale-95"
+            aria-label="Close modal"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
         {error && (
-          <div className="p-3 mb-4 text-xs rounded-lg bg-rose-500/10 border border-rose-500/25 text-rose-300">
+          <div className="mx-5 mt-3 p-3 text-xs rounded-xl bg-rose-500/10 border border-rose-500/25 text-rose-300 shrink-0">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+        <form onSubmit={handleSubmit} className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <div
+            className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-4 space-y-3.5 text-xs touch-pan-y"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+          >
           <div>
             <label className="block text-zinc-300 mb-1 font-medium">Select Client *</label>
             <select
@@ -209,20 +214,21 @@ export const AddPaymentModal: React.FC<AddPaymentModalProps> = ({
               className="glass-input"
             />
           </div>
+        </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
+        <div className="px-5 py-3.5 pb-[max(0.875rem,env(safe-area-inset-bottom))] border-t border-white/10 bg-[#141419] shrink-0 flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="glass-button-secondary py-2 px-4"
+              className="py-2.5 px-4 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-zinc-300 hover:text-white text-xs font-semibold transition active:scale-95"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="glass-button-primary py-2 px-5"
+              className="py-2.5 px-5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:brightness-110 active:scale-95 text-white text-xs font-bold shadow-[0_4px_20px_rgba(16,185,129,0.35)] transition flex items-center gap-1.5 disabled:opacity-50"
             >
               <CreditCard className="w-4 h-4" />
               <span>{loading ? 'Recording...' : 'Record Payment'}</span>
