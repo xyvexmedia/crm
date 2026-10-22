@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowLeft,
   ChevronLeft,
@@ -34,9 +34,10 @@ import { DeleteConfirmDialog } from '@/components/modals/DeleteConfirmDialog';
 
 export default function ProjectDetailPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const projectId = params?.id as string;
-  const { projects, clients, payments, expenses, updateProject, deleteProject } = useData();
+  const projectId = (params?.id as string) || searchParams?.get('id') || '';
+  const { projects, clients, payments, expenses, updateProject, deleteProject, isLoading } = useData();
 
   const [addPaymentOpen, setAddPaymentOpen] = useState(false);
   const [addExpenseOpen, setAddExpenseOpen] = useState(false);
@@ -47,6 +48,17 @@ export default function ProjectDetailPage() {
 
   const project = projects.find((p) => p.id === projectId);
   const client = project ? clients.find((c) => c.id === project.client_id) : null;
+
+  if (isLoading && !project) {
+    return (
+      <AppLayout>
+        <div className="flex flex-col items-center justify-center py-32 space-y-3">
+          <div className="w-8 h-8 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs text-zinc-400">Loading project details...</p>
+        </div>
+      </AppLayout>
+    );
+  }
 
   if (!project) {
     return (

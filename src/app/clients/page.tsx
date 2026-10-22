@@ -230,7 +230,7 @@ export default function ClientsPage() {
               return (
                 <Link
                   key={client.id}
-                  href={`/clients/${client.id}`}
+                  href={`/clients/detail?id=${client.id}`}
                   className="block bg-[#121217] hover:bg-[#16161c] border border-white/[0.08] hover:border-white/20 rounded-2xl p-4 transition-all active:scale-[0.99] shadow-md group"
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -404,7 +404,7 @@ export default function ClientsPage() {
       <AddClientModal
         isOpen={addModalOpen}
         onClose={() => setAddModalOpen(false)}
-        onSuccess={(id) => router.push(`/clients/${id}`)}
+        onSuccess={(id) => router.push(`/clients/detail?id=${id}`)}
       />
     </AppLayout>
   );

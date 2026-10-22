@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowLeft,
   ChevronLeft,
@@ -47,8 +47,9 @@ type ClientTab = 'overview' | 'projects' | 'payments' | 'expenses' | 'invoices';
 
 export default function ClientDetailPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const clientId = params?.id as string;
+  const clientId = (params?.id as string) || searchParams?.get('id') || '';
   const {
     clients,
     projects,
@@ -58,6 +59,7 @@ export default function ClientDetailPage() {
     getClientReport,
     updateClient,
     deleteClient,
+    isLoading,
   } = useData();
 
   // Modals state
@@ -73,17 +75,44 @@ export default function ClientDetailPage() {
   const client = clients.find((c) => c.id === clientId);
   const report = getClientReport(clientId);
 
-  const [editCompanyName, setEditCompanyName] = useState(client?.company_name || '');
-  const [editContactPerson, setEditContactPerson] = useState(client?.contact_person || '');
-  const [editPhone, setEditPhone] = useState(client?.phone || '');
-  const [editWhatsapp, setEditWhatsapp] = useState(client?.whatsapp || '');
-  const [editEmail, setEditEmail] = useState(client?.email || '');
-  const [editLocation, setEditLocation] = useState(client?.location || client?.address || '');
-  const [editBudget, setEditBudget] = useState(client?.total_budget?.toString() || '');
-  const [editBillingDate, setEditBillingDate] = useState(client?.billing_date || '');
-  const [editStatus, setEditStatus] = useState<ClientStatus>(client?.status || 'active');
-  const [editNotes, setEditNotes] = useState(client?.notes || '');
+  const [editCompanyName, setEditCompanyName] = useState('');
+  const [editContactPerson, setEditContactPerson] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editWhatsapp, setEditWhatsapp] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editLocation, setEditLocation] = useState('');
+  const [editBudget, setEditBudget] = useState('');
+  const [editBillingDate, setEditBillingDate] = useState('');
+  const [editStatus, setEditStatus] = useState<ClientStatus>('active');
+  const [editNotes, setEditNotes] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
+
+  // Sync edit form with client data
+  React.useEffect(() => {
+    if (client) {
+      setEditCompanyName(client.company_name || client.name || '');
+      setEditContactPerson(client.contact_person || '');
+      setEditPhone(client.phone || '');
+      setEditWhatsapp(client.whatsapp || client.phone || '');
+      setEditEmail(client.email || '');
+      setEditLocation(client.location || client.address || '');
+      setEditBudget(client.total_budget?.toString() || '');
+      setEditBillingDate(client.billing_date || '');
+      setEditStatus(client.status || 'active');
+      setEditNotes(client.notes || '');
+    }
+  }, [client]);
+
+  if (isLoading && !client) {
+    return (
+      <AppLayout>
+        <div className="flex flex-col items-center justify-center py-32 space-y-3">
+          <div className="w-8 h-8 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs text-zinc-400">Loading client profile...</p>
+        </div>
+      </AppLayout>
+    );
+  }
 
   if (!client || !report) {
     return (

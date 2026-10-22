@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowLeft,
   Save,
@@ -24,8 +24,9 @@ import { formatCurrency } from '@/lib/formatters';
 
 export default function EditClientPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const clientId = params?.id as string;
+  const clientId = (params?.id as string) || searchParams?.get('id') || '';
   const { clients, updateClient, getClientReport } = useData();
 
   const client = clients.find((c) => c.id === clientId);
@@ -99,7 +100,7 @@ export default function EditClientPage() {
         status,
         notes: notes.trim(),
       });
-      router.push(`/clients/${client.id}`);
+      router.push(`/clients/detail?id=${client.id}`);
     } catch (err: any) {
       setError(err.message || 'Failed to update client');
       setLoading(false);
@@ -113,7 +114,7 @@ export default function EditClientPage() {
         <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
           <div className="flex items-center gap-3">
             <Link
-              href={`/clients/${client.id}`}
+              href={`/clients/detail?id=${client.id}`}
               className="w-9 h-9 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-zinc-300 hover:text-white flex items-center justify-center transition active:scale-95"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -313,7 +314,7 @@ export default function EditClientPage() {
 
           <div className="pt-2 flex items-center gap-3">
             <Link
-              href={`/clients/${client.id}`}
+              href={`/clients/detail?id=${client.id}`}
               className="w-1/3 py-3 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-zinc-300 text-xs font-semibold text-center transition"
             >
               Cancel

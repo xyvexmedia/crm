@@ -199,7 +199,7 @@ export default function PendingPaymentsPage() {
                         <td>
                           <div>
                             <Link
-                              href={`/clients/${report.client.id}`}
+                              href={`/clients/detail?id=${report.client.id}`}
                               className="font-semibold text-white hover:underline flex items-center gap-1.5 text-xs"
                             >
                               {report.client.company_name}

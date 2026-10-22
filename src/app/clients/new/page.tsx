@@ -126,7 +126,7 @@ export default function NewClientPage() {
         });
       }
 
-      router.push(`/clients/${newClient.id}`);
+      router.push(`/clients/detail?id=${newClient.id}`);
     } catch (err: any) {
       setError(err.message || 'Failed to create client');
       setLoading(false);

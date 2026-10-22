@@ -134,7 +134,7 @@ export default function InvoicesPage() {
                       <tr key={inv.id} className="hover:bg-white/[0.03]">
                         <td>
                           <Link
-                            href={`/invoices/${inv.id}`}
+                            href={`/invoices/detail?id=${inv.id}`}
                             className="font-mono font-bold text-white hover:underline flex items-center gap-1.5 text-xs"
                           >
                             <FileText className="w-3.5 h-3.5 text-zinc-400" />
@@ -144,7 +144,7 @@ export default function InvoicesPage() {
                         <td>
                           {client ? (
                             <Link
-                              href={`/clients/${client.id}`}
+                              href={`/clients/detail?id=${client.id}`}
                               className="font-medium text-zinc-200 hover:text-white hover:underline text-xs"
                             >
                               {client.company_name}
@@ -185,7 +185,7 @@ export default function InvoicesPage() {
                         <td className="text-right">
                           <div className="flex items-center justify-end gap-1">
                             <Link
-                              href={`/invoices/${inv.id}`}
+                              href={`/invoices/detail?id=${inv.id}`}
                               className="p-1.5 rounded-md hover:bg-white/10 text-zinc-400 hover:text-white transition"
                               title="View & Download PDF"
                             >

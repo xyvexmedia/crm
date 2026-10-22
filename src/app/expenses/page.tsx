@@ -469,7 +469,7 @@ export default function ExpensesPage() {
                         <td>
                           {client ? (
                             <Link
-                              href={`/clients/${client.id}`}
+                              href={`/clients/detail?id=${client.id}`}
                               className="font-medium text-white hover:underline text-xs"
                             >
                               {client.company_name}

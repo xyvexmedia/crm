@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowLeft,
   Download,
@@ -22,15 +22,27 @@ import { InvoiceStatus } from '@/types';
 
 export default function InvoiceDetailPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const invoiceId = params?.id as string;
-  const { invoices, clients, settings, updateInvoice, payments } = useData();
+  const invoiceId = (params?.id as string) || searchParams?.get('id') || '';
+  const { invoices, clients, settings, updateInvoice, payments, isLoading } = useData();
 
   const [downloading, setDownloading] = useState(false);
   const printAreaRef = useRef<HTMLDivElement>(null);
 
   const invoice = invoices.find((inv) => inv.id === invoiceId);
   const client = invoice ? clients.find((c) => c.id === invoice.client_id) : null;
+
+  if (isLoading && !invoice) {
+    return (
+      <AppLayout>
+        <div className="flex flex-col items-center justify-center py-32 space-y-3">
+          <div className="w-8 h-8 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs text-zinc-400">Loading invoice details...</p>
+        </div>
+      </AppLayout>
+    );
+  }
 
   if (!invoice) {
     return (
