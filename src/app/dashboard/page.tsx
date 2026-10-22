@@ -96,18 +96,7 @@ export default function DashboardPage() {
       {/* ======================================================== */}
       {/* 1. MOBILE DASHBOARD VIEW (Strictly matching Mockup Screen 1) */}
       {/* ======================================================== */}
-      <div className="block sm:hidden space-y-4">
-        {/* Greeting */}
-        <div className="pt-1">
-          <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-1.5">
-            <span>Good Morning, {user?.name || 'Salih'}</span>
-            <span>👋</span>
-          </h2>
-          <p className="text-xs text-zinc-400 mt-0.5">
-            Here&apos;s your business overview
-          </p>
-        </div>
-
+      <div className="block sm:hidden space-y-4 pt-1">
         {/* 2x2 Top KPI Cards (Screen 1 Exact Layout) */}
         <div className="grid grid-cols-2 gap-3">
           {/* Card 1: Total Revenue (Solid Lime Green Card) */}

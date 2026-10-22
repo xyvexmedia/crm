@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   Plus,
@@ -52,6 +52,30 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Lock mobile body scroll completely while modal is open so background never scrolls
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    const originalPosition = document.body.style.position;
+    const originalTop = document.body.style.top;
+    const originalWidth = document.body.style.width;
+
+    const scrollY = window.scrollY;
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.position = originalPosition;
+      document.body.style.top = originalTop;
+      document.body.style.width = originalWidth;
+      window.scrollTo(0, scrollY);
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -132,8 +156,11 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget && !loading) onClose();
       }}
+      onTouchMove={(e) => {
+        if (e.target === e.currentTarget) e.preventDefault();
+      }}
     >
-      <div className="relative w-full max-w-lg bg-[#111116] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[88dvh] sm:max-h-[85vh] flex flex-col min-h-0 overflow-hidden animate-fade">
+      <div className="relative w-full max-w-lg bg-[#111116] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl shadow-2xl h-[82dvh] sm:h-auto sm:max-h-[85vh] flex flex-col min-h-0 overflow-hidden animate-fade">
         {/* Fixed Modal Header */}
         <div className="px-5 pt-4 pb-3 border-b border-white/[0.08] shrink-0 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -170,7 +197,14 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
           {/* Scrollable Form Body */}
           <div
             className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-4 space-y-3.5 text-xs touch-pan-y"
-            style={{ WebkitOverflowScrolling: 'touch' }}
+            style={{
+              WebkitOverflowScrolling: 'touch',
+              overscrollBehavior: 'contain',
+              touchAction: 'pan-y',
+            }}
+            onTouchMove={(e) => {
+              e.stopPropagation();
+            }}
           >
             {/* 1. Company / Brand Name* */}
             <div>
@@ -323,7 +357,7 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
           </div>
 
           {/* Fixed Footer: Always visible at bottom, never cut off */}
-          <div className="px-5 py-3.5 pb-[max(0.875rem,env(safe-area-inset-bottom))] border-t border-white/10 bg-[#141419] shrink-0 flex items-center justify-end gap-3">
+          <div className="px-5 py-3.5 pb-[max(1rem,env(safe-area-inset-bottom))] border-t border-white/10 bg-[#141419] shrink-0 flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={onClose}

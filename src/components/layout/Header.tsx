@@ -68,25 +68,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSearch }) => {
 
   return (
     <header className="w-full bg-[#08080a] py-3 sm:py-4 px-4 sm:px-6 md:px-8 border-b border-white/[0.04]">
-      {/* Mobile Top Header (Mockup Screen 1) */}
-      <div className="flex sm:hidden items-center justify-between w-full">
-        {/* Left: XYVEX MEDIA Logo */}
-        <Link href="/dashboard" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-white/[0.06] border border-white/10 flex items-center justify-center p-1.5 shadow-sm">
-            <svg viewBox="0 0 40 40" className="w-5 h-5 fill-white">
-              <path d="M10 10 C 16 16, 16 24, 10 30 C 8 32, 6 30, 8 28 C 12 24, 12 16, 8 12 C 6 10, 8 8, 10 10 Z" />
-              <path d="M30 10 C 24 16, 24 24, 30 30 C 32 32, 34 30, 32 28 C 28 24, 28 16, 32 12 C 34 10, 32 8, 30 10 Z" />
-            </svg>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[11px] font-black tracking-widest text-white leading-none uppercase">
-              XYVEX
-            </span>
-            <span className="text-[8px] font-bold tracking-[0.2em] text-zinc-400 leading-none mt-0.5 uppercase">
-              MEDIA
-            </span>
-          </div>
-        </Link>
+      {/* Mobile Top Header */}
+      <div className="flex sm:hidden items-center justify-end w-full">
 
         {/* Right: Notification Bell with Badge + Avatar */}
         <div className="flex items-center gap-2">
