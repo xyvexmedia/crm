@@ -62,8 +62,76 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSearch }) => {
   const displayName = user?.name || 'Salih';
 
   return (
-    <header className="w-full bg-[#08080a] py-4 px-4 sm:px-6 md:px-8 border-b border-white/[0.04]">
-      <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-4">
+    <header className="w-full bg-[#08080a] py-3 sm:py-4 px-4 sm:px-6 md:px-8 border-b border-white/[0.04]">
+      {/* Mobile Top Header (Mockup Screen 1) */}
+      <div className="flex sm:hidden items-center justify-between w-full">
+        {/* Left: XYVEX MEDIA Logo */}
+        <Link href="/dashboard" className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-white/[0.06] border border-white/10 flex items-center justify-center p-1.5 shadow-sm">
+            <svg viewBox="0 0 40 40" className="w-5 h-5 fill-white">
+              <path d="M10 10 C 16 16, 16 24, 10 30 C 8 32, 6 30, 8 28 C 12 24, 12 16, 8 12 C 6 10, 8 8, 10 10 Z" />
+              <path d="M30 10 C 24 16, 24 24, 30 30 C 32 32, 34 30, 32 28 C 28 24, 28 16, 32 12 C 34 10, 32 8, 30 10 Z" />
+            </svg>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[11px] font-black tracking-widest text-white leading-none uppercase">
+              XYVEX
+            </span>
+            <span className="text-[8px] font-bold tracking-[0.2em] text-zinc-400 leading-none mt-0.5 uppercase">
+              MEDIA
+            </span>
+          </div>
+        </Link>
+
+        {/* Right: Notification Bell with Badge + Avatar */}
+        <div className="flex items-center gap-2">
+          {/* Notification Bell */}
+          <div className="relative" ref={notifRef}>
+            <button
+              onClick={() => {
+                setProfileOpen(false);
+                setNotificationsOpen(!notificationsOpen);
+              }}
+              className="w-9 h-9 rounded-full bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 flex items-center justify-center text-white relative transition"
+              aria-label="Notifications"
+            >
+              <Bell className="w-4 h-4 text-zinc-200" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-[#e11d48] text-white text-[9px] font-bold shadow-[0_0_8px_#e11d48]">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Profile Avatar */}
+          <div className="relative" ref={profileRef}>
+            <button
+              onClick={() => {
+                setNotificationsOpen(false);
+                setProfileOpen(!profileOpen);
+              }}
+              className="w-9 h-9 rounded-full p-0.5 bg-gradient-to-tr from-[#e11d48] via-[#be123c] to-white/40 flex items-center justify-center transition-transform active:scale-95"
+              aria-label="User profile"
+            >
+              <div className="w-full h-full rounded-full bg-zinc-900 overflow-hidden flex items-center justify-center">
+                <img
+                  src={user?.avatar || '/xyvex-logo.jpeg'}
+                  alt={displayName}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = 'none';
+                  }}
+                />
+                <User className="w-4 h-4 text-zinc-300" />
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Top Header (Laptop View - 100% UNCHANGED) */}
+      <div className="hidden sm:flex max-w-[1440px] mx-auto items-center justify-between gap-4">
         {/* Left: Neon Star Brand Button & Pill Navigation */}
         <div className="flex items-center gap-3 md:gap-4 overflow-x-auto no-scrollbar py-1">
           {/* Circular Wine/Crimson Brand Button (matching screenshot) */}

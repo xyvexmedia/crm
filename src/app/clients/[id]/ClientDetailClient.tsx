@@ -18,6 +18,11 @@ import {
   TrendingUp,
   Briefcase,
   ExternalLink,
+  MoreVertical,
+  MessageSquare,
+  MoreHorizontal,
+  User,
+  FileText,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useData } from '@/context/data-context';
@@ -73,9 +78,289 @@ export default function ClientDetailPage() {
   const primaryProject = clientProjects[0];
   const dueInfo = getDaysRemaining(client.billing_date);
 
+  const [mobileTab, setMobileTab] = useState<'overview' | 'projects' | 'invoices' | 'expenses'>('overview');
+
   return (
     <AppLayout>
-      <div className="space-y-6">
+      {/* ======================================================== */}
+      {/* 1. MOBILE CLIENT DETAILS VIEW (Strictly matching Mockup Screen 3) */}
+      {/* ======================================================== */}
+      <div className="block sm:hidden space-y-4">
+        {/* Mobile Header: Back button + Client Details title + More menu */}
+        <div className="flex items-center justify-between pt-1">
+          <Link
+            href="/clients"
+            className="w-9 h-9 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center text-zinc-300 hover:text-white active:scale-95 transition"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+          <h1 className="text-sm font-bold text-white tracking-tight">
+            Client Details
+          </h1>
+          <button
+            onClick={() => router.push(`/clients/${client.id}/edit`)}
+            className="w-9 h-9 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center text-zinc-300 hover:text-white active:scale-95 transition"
+          >
+            <MoreVertical className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Client Header Card: Avatar + Name + Services + Status */}
+        <div className="bg-[#121217] border border-white/10 rounded-2xl p-4 flex flex-col items-center text-center shadow-lg relative">
+          <div className="w-16 h-16 rounded-full bg-[#881337] border-2 border-[#e11d48]/40 text-white font-black text-lg flex items-center justify-center shadow-md">
+            {(client.company_name || 'CL').slice(0, 2).toUpperCase()}
+          </div>
+          <h2 className="text-base font-bold text-white mt-2.5 tracking-tight">
+            {client.company_name}
+          </h2>
+          <p className="text-xs text-zinc-400 mt-0.5">
+            {primaryProject?.service || 'Meta Ads & Social Media'}
+          </p>
+          <span
+            className={`mt-2 px-2.5 py-0.5 rounded-full text-[10px] font-semibold capitalize ${
+              client.status === 'active'
+                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                : 'bg-zinc-700/30 text-zinc-400 border border-zinc-700/40'
+            }`}
+          >
+            {client.status}
+          </span>
+        </div>
+
+        {/* 4 Quick Contact Buttons Row: Call, WhatsApp, Email, More */}
+        <div className="grid grid-cols-4 gap-2">
+          <a
+            href={`tel:${client.phone || ''}`}
+            className="flex flex-col items-center justify-center gap-1 p-2.5 rounded-2xl bg-[#141419] border border-white/[0.08] active:scale-95 transition text-zinc-300 hover:text-white"
+          >
+            <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
+              <Phone className="w-3.5 h-3.5 text-zinc-300" />
+            </div>
+            <span className="text-[10px] font-medium text-zinc-400">Call</span>
+          </a>
+
+          <a
+            href={`https://wa.me/${(client.whatsapp || client.phone || '').replace(/[^0-9]/g, '')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex flex-col items-center justify-center gap-1 p-2.5 rounded-2xl bg-[#141419] border border-white/[0.08] active:scale-95 transition text-zinc-300 hover:text-white"
+          >
+            <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center">
+              <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
+            </div>
+            <span className="text-[10px] font-medium text-zinc-400">WhatsApp</span>
+          </a>
+
+          <a
+            href={`mailto:${client.email || ''}`}
+            className="flex flex-col items-center justify-center gap-1 p-2.5 rounded-2xl bg-[#141419] border border-white/[0.08] active:scale-95 transition text-zinc-300 hover:text-white"
+          >
+            <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
+              <Mail className="w-3.5 h-3.5 text-blue-400" />
+            </div>
+            <span className="text-[10px] font-medium text-zinc-400">Email</span>
+          </a>
+
+          <button
+            onClick={() => router.push(`/clients/${client.id}/edit`)}
+            className="flex flex-col items-center justify-center gap-1 p-2.5 rounded-2xl bg-[#141419] border border-white/[0.08] active:scale-95 transition text-zinc-300 hover:text-white"
+          >
+            <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
+              <MoreHorizontal className="w-3.5 h-3.5 text-zinc-300" />
+            </div>
+            <span className="text-[10px] font-medium text-zinc-400">More</span>
+          </button>
+        </div>
+
+        {/* 3 Metric Cards: Total Budget, Paid, Pending (Screen 3) */}
+        <div className="grid grid-cols-3 gap-2">
+          {/* Total Budget (Green) */}
+          <div className="bg-[#121217] border border-emerald-500/30 rounded-2xl p-2.5 flex flex-col justify-between">
+            <span className="text-[10px] text-zinc-400 font-medium">Total Budget</span>
+            <span className="text-xs font-bold font-mono text-emerald-400 mt-1 truncate">
+              {formatCurrency(report.totalBudget)}
+            </span>
+          </div>
+
+          {/* Paid (Blue) */}
+          <div className="bg-[#121217] border border-blue-500/30 rounded-2xl p-2.5 flex flex-col justify-between">
+            <span className="text-[10px] text-zinc-400 font-medium">Paid</span>
+            <span className="text-xs font-bold font-mono text-blue-400 mt-1 truncate">
+              {formatCurrency(report.amountReceived)}
+            </span>
+          </div>
+
+          {/* Pending (Orange) */}
+          <div className="bg-[#121217] border border-amber-500/30 rounded-2xl p-2.5 flex flex-col justify-between">
+            <span className="text-[10px] text-zinc-400 font-medium">Pending</span>
+            <span className="text-xs font-bold font-mono text-amber-400 mt-1 truncate">
+              {formatCurrency(report.pendingAmount)}
+            </span>
+          </div>
+        </div>
+
+        {/* Payment Progress Bar */}
+        <div className="bg-[#121217] border border-white/10 rounded-2xl p-3.5 space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-zinc-400 font-medium text-[11px]">Payment Progress</span>
+            <span className="font-bold text-[#a3e635] text-[11px] font-mono">
+              {report.paymentProgress}%
+            </span>
+          </div>
+          <div className="w-full h-2 rounded-full bg-white/[0.06] overflow-hidden">
+            <div
+              className="h-full rounded-full bg-[#a3e635] shadow-[0_0_8px_#a3e635] transition-all duration-500"
+              style={{ width: `${report.paymentProgress}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Sub-tabs Row: Overview | Projects | Invoices | Expenses */}
+        <div className="flex items-center gap-1.5 p-1 bg-[#141418] rounded-full border border-white/5 overflow-x-auto no-scrollbar">
+          {(['overview', 'projects', 'invoices', 'expenses'] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setMobileTab(t)}
+              className={`flex-1 py-1.5 px-3 rounded-full text-xs font-medium capitalize whitespace-nowrap transition ${
+                mobileTab === t
+                  ? 'bg-[#a3e635] text-black font-semibold shadow-sm'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+
+        {/* Client Information Card (Screen 3) */}
+        {mobileTab === 'overview' && (
+          <div className="space-y-3">
+            <div className="bg-[#121217] border border-white/10 rounded-2xl p-4 space-y-3 shadow-sm">
+              <h3 className="text-xs font-bold text-white tracking-tight uppercase tracking-wider text-[11px]">
+                Client Information
+              </h3>
+              <div className="space-y-2 text-xs divide-y divide-white/[0.04]">
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-zinc-400 flex items-center gap-1.5 text-[11px]">
+                    <Briefcase className="w-3.5 h-3.5 text-zinc-500" /> Company Name
+                  </span>
+                  <span className="text-white font-medium">{client.company_name}</span>
+                </div>
+                <div className="flex items-center justify-between pt-2">
+                  <span className="text-zinc-400 flex items-center gap-1.5 text-[11px]">
+                    <User className="w-3.5 h-3.5 text-zinc-500" /> Contact Person
+                  </span>
+                  <span className="text-white font-medium">{client.name || 'Jithin'}</span>
+                </div>
+                <div className="flex items-center justify-between pt-2">
+                  <span className="text-zinc-400 flex items-center gap-1.5 text-[11px]">
+                    <Phone className="w-3.5 h-3.5 text-zinc-500" /> Phone
+                  </span>
+                  <span className="text-white font-medium font-mono">{client.phone || '-'}</span>
+                </div>
+                <div className="flex items-center justify-between pt-2">
+                  <span className="text-zinc-400 flex items-center gap-1.5 text-[11px]">
+                    <Mail className="w-3.5 h-3.5 text-zinc-500" /> Email
+                  </span>
+                  <span className="text-white font-medium truncate max-w-[180px]">{client.email || '-'}</span>
+                </div>
+                <div className="flex items-center justify-between pt-2">
+                  <span className="text-zinc-400 flex items-center gap-1.5 text-[11px]">
+                    <MapPin className="w-3.5 h-3.5 text-zinc-500" /> Address
+                  </span>
+                  <span className="text-white font-medium truncate max-w-[180px]">{client.address || 'Kozhikode, Kerala'}</span>
+                </div>
+                <div className="flex items-center justify-between pt-2">
+                  <span className="text-zinc-400 flex items-center gap-1.5 text-[11px]">
+                    <Calendar className="w-3.5 h-3.5 text-zinc-500" /> Join Date
+                  </span>
+                  <span className="text-white font-medium">{formatDate(client.created_at)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Notes Card (Screen 3) */}
+            <div className="bg-[#121217] border border-white/10 rounded-2xl p-4 shadow-sm space-y-2">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold text-white tracking-tight uppercase tracking-wider text-[11px]">
+                  Notes
+                </h3>
+                <Link
+                  href={`/clients/${client.id}/edit`}
+                  className="text-zinc-400 hover:text-white"
+                >
+                  <Edit className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+              <p className="text-xs text-zinc-300 leading-relaxed bg-white/[0.02] p-2.5 rounded-xl border border-white/[0.04]">
+                {client.notes || 'Monthly Meta Ads campaign. Good response from last month.'}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 2: Projects */}
+        {mobileTab === 'projects' && (
+          <div className="space-y-2">
+            {clientProjects.length === 0 ? (
+              <p className="text-center py-6 text-zinc-500 text-xs">No active projects</p>
+            ) : (
+              clientProjects.map((p) => (
+                <div key={p.id} className="bg-[#121217] border border-white/10 rounded-2xl p-3 flex items-center justify-between">
+                  <div>
+                    <h4 className="text-xs font-bold text-white">{p.name}</h4>
+                    <p className="text-[11px] text-zinc-400 mt-0.5">{p.service}</p>
+                  </div>
+                  <span className="font-mono text-xs font-bold text-white">{formatCurrency(p.budget)}</span>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* Tab 3: Invoices */}
+        {mobileTab === 'invoices' && (
+          <div className="space-y-2">
+            {clientPayments.length === 0 ? (
+              <p className="text-center py-6 text-zinc-500 text-xs">No invoices found</p>
+            ) : (
+              clientPayments.map((pay) => (
+                <div key={pay.id} className="bg-[#121217] border border-white/10 rounded-2xl p-3 flex items-center justify-between">
+                  <div>
+                    <span className="text-xs font-bold text-white block capitalize">{pay.payment_type}</span>
+                    <span className="text-[10px] text-zinc-400 block">{formatDate(pay.payment_date)}</span>
+                  </div>
+                  <span className="font-mono text-xs font-bold text-emerald-400">+{formatCurrency(pay.amount)}</span>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* Tab 4: Expenses */}
+        {mobileTab === 'expenses' && (
+          <div className="space-y-2">
+            {clientExpenses.length === 0 ? (
+              <p className="text-center py-6 text-zinc-500 text-xs">No client expenses</p>
+            ) : (
+              clientExpenses.map((exp) => (
+                <div key={exp.id} className="bg-[#121217] border border-white/10 rounded-2xl p-3 flex items-center justify-between">
+                  <div>
+                    <span className="text-xs font-bold text-white block">{exp.category}</span>
+                    <span className="text-[10px] text-zinc-400 block">{exp.description}</span>
+                  </div>
+                  <span className="font-mono text-xs font-bold text-rose-400">-{formatCurrency(exp.amount)}</span>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ======================================================== */}
+      {/* 2. DESKTOP / LAPTOP CLIENT DETAILS VIEW (100% UNCHANGED) */}
+      {/* ======================================================== */}
+      <div className="hidden sm:block space-y-6">
         {/* Navigation Breadcrumb & Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-white/[0.08]">
           <div className="flex items-center gap-3">

@@ -14,6 +14,8 @@ import {
   CheckCircle2,
   Clock,
   Filter,
+  ChevronRight,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useData } from '@/context/data-context';
@@ -63,7 +65,189 @@ export default function ClientsPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      {/* ======================================================== */}
+      {/* 1. MOBILE CLIENTS VIEW (Strictly matching Mockup Screen 2) */}
+      {/* ======================================================== */}
+      <div className="block sm:hidden space-y-4">
+        {/* Mobile Header: Clients title + + Add Client button */}
+        <div className="flex items-center justify-between pt-1">
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-white">
+              Clients
+            </h1>
+            <p className="text-[11px] text-zinc-400 mt-0.5">
+              Manage your clients and track payments
+            </p>
+          </div>
+          <button
+            onClick={() => setAddModalOpen(true)}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#a3e635] text-black text-xs font-semibold shadow-md active:scale-95 transition"
+          >
+            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+            <span>Add Client</span>
+          </button>
+        </div>
+
+        {/* Search Bar + Filter Icon */}
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search clients..."
+              className="w-full bg-[#141419] border border-white/10 rounded-2xl pl-9 pr-3 py-2.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#a3e635]/50 transition"
+            />
+          </div>
+          <button
+            onClick={() => setFilter(filter === 'all' ? 'active' : 'all')}
+            className="w-10 h-10 rounded-2xl bg-[#141419] border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white active:scale-95 transition"
+            aria-label="Filter"
+          >
+            <SlidersHorizontal className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Filter Pills Row (Screen 2: All (24), Active (18), Pending (4), Completed (2)) */}
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+          <button
+            onClick={() => setFilter('all')}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition ${
+              filter === 'all'
+                ? 'bg-[#a3e635] text-black font-semibold shadow-sm'
+                : 'bg-white/[0.05] text-zinc-400 border border-white/[0.08]'
+            }`}
+          >
+            All ({clientReports.length})
+          </button>
+          <button
+            onClick={() => setFilter('active')}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition ${
+              filter === 'active'
+                ? 'bg-[#a3e635] text-black font-semibold shadow-sm'
+                : 'bg-white/[0.05] text-zinc-400 border border-white/[0.08]'
+            }`}
+          >
+            Active ({clientReports.filter((r) => r.client.status === 'active').length})
+          </button>
+          <button
+            onClick={() => setFilter('pending')}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition ${
+              filter === 'pending'
+                ? 'bg-[#a3e635] text-black font-semibold shadow-sm'
+                : 'bg-white/[0.05] text-zinc-400 border border-white/[0.08]'
+            }`}
+          >
+            Pending ({clientReports.filter((r) => r.pendingAmount > 0).length})
+          </button>
+          <button
+            onClick={() => setFilter('completed')}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition ${
+              filter === 'completed'
+                ? 'bg-[#a3e635] text-black font-semibold shadow-sm'
+                : 'bg-white/[0.05] text-zinc-400 border border-white/[0.08]'
+            }`}
+          >
+            Completed ({clientReports.filter((r) => r.client.status === 'completed').length})
+          </button>
+        </div>
+
+        {/* Client Cards List */}
+        <div className="space-y-2.5">
+          {filteredReports.length === 0 ? (
+            <div className="bg-[#121217] border border-dashed border-white/10 rounded-2xl p-8 text-center space-y-2">
+              <Users className="w-8 h-8 text-zinc-600 mx-auto" />
+              <p className="text-xs text-zinc-400">No clients match this filter</p>
+              {!search && (
+                <button
+                  onClick={() => setAddModalOpen(true)}
+                  className="px-3.5 py-1.5 rounded-full bg-[#a3e635] text-black text-xs font-semibold shadow-sm mt-1"
+                >
+                  + Add Client
+                </button>
+              )}
+            </div>
+          ) : (
+            filteredReports.map((report, idx) => {
+              const clientProjects = projects.filter((p) => p.client_id === report.client.id);
+              const primaryService = clientProjects[0]?.service || 'Meta Ads & Creative';
+              const initials = (report.client.company_name || 'CL')
+                .split(' ')
+                .map((n) => n[0])
+                .join('')
+                .slice(0, 2)
+                .toUpperCase();
+
+              // Palette colors for client avatar
+              const colors = [
+                'bg-purple-600',
+                'bg-rose-500',
+                'bg-zinc-700',
+                'bg-red-500',
+                'bg-emerald-600',
+                'bg-blue-600',
+                'bg-pink-600',
+                'bg-amber-600',
+              ];
+              const avatarColor = colors[idx % colors.length];
+
+              return (
+                <Link
+                  key={report.client.id}
+                  href={`/clients/${report.client.id}`}
+                  className="block bg-[#121217] hover:bg-[#181820] border border-white/[0.08] rounded-2xl p-3.5 transition active:scale-[0.99] shadow-sm"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {/* Circular Avatar */}
+                      <div
+                        className={`w-10 h-10 rounded-full ${avatarColor} text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm`}
+                      >
+                        {initials}
+                      </div>
+
+                      {/* Client Info */}
+                      <div className="min-w-0">
+                        <h4 className="text-xs font-bold text-white truncate tracking-tight">
+                          {report.client.company_name}
+                        </h4>
+                        <p className="text-[11px] text-zinc-400 truncate mt-0.5">
+                          {primaryService}
+                        </p>
+                        <p className="text-[10px] font-mono text-zinc-500 mt-1">
+                          {formatCurrency(report.totalBudget)} • {formatCurrency(report.amountReceived)} • {formatCurrency(report.pendingAmount)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Right: Status Pill & Chevron */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize ${
+                          report.client.status === 'active'
+                            ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                            : report.pendingAmount > 0
+                            ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                            : 'bg-zinc-700/30 text-zinc-400 border border-zinc-700/40'
+                        }`}
+                      >
+                        {report.client.status}
+                      </span>
+                      <ChevronRight className="w-4 h-4 text-zinc-500" />
+                    </div>
+                  </div>
+                </Link>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      {/* ======================================================== */}
+      {/* 2. DESKTOP / LAPTOP CLIENTS VIEW (100% UNCHANGED)        */}
+      {/* ======================================================== */}
+      <div className="hidden sm:block space-y-6">
         {/* Header (Section 17) */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-white/[0.08]">
           <div>

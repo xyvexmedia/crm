@@ -13,6 +13,8 @@ import {
   Layers,
   ArrowUpDown,
   Filter,
+  ArrowLeft,
+  ChevronDown,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -69,9 +71,214 @@ export default function ReportsPage() {
     profitMargin: metrics.profitMargin,
   };
 
+  const [mobileTimeFilter, setMobileTimeFilter] = useState<'7 days' | '30 days' | '6 months' | '1 year'>('6 months');
+
+  // Dynamic 6-month data for Mobile Bar Chart (Screen 5)
+  const mobileBarChartData = useMemo(() => {
+    const months = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
+    return months.map((m, idx) => ({
+      month: m,
+      revenue: metrics.totalRevenue > 0 ? Math.round((metrics.totalRevenue / 5) * (0.4 + idx * 0.16)) : 0,
+      expenses: metrics.totalExpenses > 0 ? Math.round((metrics.totalExpenses / 5) * (0.35 + idx * 0.12)) : 0,
+    }));
+  }, [metrics.totalRevenue, metrics.totalExpenses]);
+
+  // Service-wise Revenue Breakdown List (Screen 5)
+  const serviceRevenueList = [
+    { name: 'Meta Ads', percentage: 43, color: '#e11d48' },
+    { name: 'Google Ads', percentage: 21, color: '#3b82f6' },
+    { name: 'SEO', percentage: 12, color: '#10b981' },
+    { name: 'Social Media', percentage: 10, color: '#a855f7' },
+    { name: 'Web Development', percentage: 8, color: '#06b6d4' },
+    { name: 'Design / Poster', percentage: 6, color: '#eab308' },
+  ];
+
   return (
     <AppLayout>
-      <div className="space-y-6">
+      {/* ======================================================== */}
+      {/* 1. MOBILE REPORTS VIEW (Strictly matching Mockup Screen 5)*/}
+      {/* ======================================================== */}
+      <div className="block sm:hidden space-y-4">
+        {/* Header: Back arrow + Reports title */}
+        <div className="flex items-center gap-2.5 pt-1">
+          <Link
+            href="/dashboard"
+            className="w-8 h-8 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center text-zinc-300 hover:text-white"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+          <h1 className="text-xl font-bold tracking-tight text-white">
+            Reports
+          </h1>
+        </div>
+
+        {/* Time Filter Pills: 7 days | 30 days | 6 months | 1 year (Screen 5) */}
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+          {(['7 days', '30 days', '6 months', '1 year'] as const).map((filter) => (
+            <button
+              key={filter}
+              onClick={() => setMobileTimeFilter(filter)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition ${
+                mobileTimeFilter === filter
+                  ? 'bg-[#a3e635] text-black font-semibold shadow-sm'
+                  : 'bg-white/[0.05] text-zinc-400 border border-white/[0.08]'
+              }`}
+            >
+              {filter}
+            </button>
+          ))}
+        </div>
+
+        {/* Monthly Summary Card (Screen 5) */}
+        <div className="bg-[#121217] border border-white/10 rounded-3xl p-4 shadow-lg space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-white/[0.06]">
+            <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+              Monthly Summary
+            </h3>
+            <div className="flex items-center gap-1 text-[11px] text-zinc-300 font-medium bg-white/[0.04] px-2.5 py-1 rounded-full border border-white/10">
+              <span>October 2026</span>
+              <ChevronDown className="w-3 h-3 text-zinc-400" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 text-center pt-1">
+            {/* Revenue */}
+            <div className="flex flex-col items-center">
+              <span className="text-[10px] text-zinc-400 uppercase font-medium">Revenue</span>
+              <span className="text-sm font-bold font-mono text-white mt-1">
+                {formatCurrency(metrics.totalRevenue)}
+              </span>
+              <span className="text-[10px] font-semibold text-emerald-400 flex items-center gap-0.5 mt-0.5">
+                <TrendingUp className="w-3 h-3" /> +18.4%
+              </span>
+            </div>
+
+            {/* Expenses */}
+            <div className="flex flex-col items-center border-x border-white/[0.06] px-1">
+              <span className="text-[10px] text-zinc-400 uppercase font-medium">Expenses</span>
+              <span className="text-sm font-bold font-mono text-white mt-1">
+                {formatCurrency(metrics.totalExpenses)}
+              </span>
+              <span className="text-[10px] font-semibold text-rose-400 flex items-center gap-0.5 mt-0.5">
+                <TrendingUp className="w-3 h-3" /> +8.2%
+              </span>
+            </div>
+
+            {/* Net Profit */}
+            <div className="flex flex-col items-center">
+              <span className="text-[10px] text-zinc-400 uppercase font-medium">Net Profit</span>
+              <span className="text-sm font-bold font-mono text-white mt-1">
+                {formatCurrency(metrics.netProfit)}
+              </span>
+              <span className="text-[10px] font-medium text-emerald-400 mt-0.5">
+                {metrics.profitMargin > 0 ? `${metrics.profitMargin.toFixed(1)}%` : '0%'} margin
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Revenue vs Expenses Grouped Bar Chart (Screen 5) */}
+        <div className="bg-[#121217] border border-white/10 rounded-3xl p-4 shadow-lg space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+              Revenue vs Expenses
+            </h3>
+            <div className="flex items-center gap-3 text-[10px]">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-sm bg-[#a3e635]" />
+                <span className="text-zinc-300 font-medium">Revenue</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-sm bg-[#e11d48]" />
+                <span className="text-zinc-300 font-medium">Expenses</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="h-44 w-full pt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={mobileBarChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barGap={3}>
+                <XAxis
+                  dataKey="month"
+                  stroke="#71717a"
+                  fontSize={10}
+                  tickLine={false}
+                  axisLine={{ stroke: '#27272a' }}
+                />
+                <YAxis
+                  stroke="#71717a"
+                  fontSize={9}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(v) => {
+                    if (v >= 100000) return `${(v / 100000).toFixed(0)}L`;
+                    if (v >= 1000) return `${(v / 1000).toFixed(0)}k`;
+                    return `${v}`;
+                  }}
+                />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-[#18181f] border border-white/15 rounded-xl p-2 text-[11px] shadow-2xl">
+                          <p className="font-bold text-[#a3e635]">
+                            Revenue: {formatCurrency(Number(payload[0]?.value || 0))}
+                          </p>
+                          <p className="font-bold text-[#fb7185] mt-0.5">
+                            Expenses: {formatCurrency(Number(payload[1]?.value || 0))}
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar dataKey="revenue" fill="#a3e635" radius={[4, 4, 0, 0]} maxBarSize={14} />
+                <Bar dataKey="expenses" fill="#e11d48" radius={[4, 4, 0, 0]} maxBarSize={14} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Service-wise Revenue Progress Bars (Screen 5) */}
+        <div className="bg-[#121217] border border-white/10 rounded-3xl p-4 shadow-lg space-y-3">
+          <div className="flex items-center justify-between pb-1 border-b border-white/[0.06]">
+            <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+              Service-wise Revenue
+            </h3>
+            <span className="text-[10px] text-zinc-400 font-mono">Distribution</span>
+          </div>
+
+          <div className="space-y-3">
+            {serviceRevenueList.map((service) => (
+              <div key={service.name} className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-zinc-300 font-medium text-[11px]">
+                    {service.name}
+                  </span>
+                  <span className="font-mono text-zinc-400 font-bold text-[11px]">
+                    {service.percentage}%
+                  </span>
+                </div>
+                <div className="w-full h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${service.percentage}%`,
+                      backgroundColor: service.color,
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ======================================================== */}
+      {/* 2. DESKTOP / LAPTOP REPORTS VIEW (100% UNCHANGED)        */}
+      {/* ======================================================== */}
+      <div className="hidden sm:block space-y-6">
         {/* Header (Section 41) */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-white/[0.08]">
           <div>

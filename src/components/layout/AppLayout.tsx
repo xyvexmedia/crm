@@ -2,6 +2,7 @@
 
 import React, { useState, ReactNode } from 'react';
 import { Header } from './Header';
+import { MobileBottomNav } from './MobileBottomNav';
 import { CommandMenu } from '@/components/command-menu';
 import { AddClientModal } from '@/components/modals/AddClientModal';
 import { AddPaymentModal } from '@/components/modals/AddPaymentModal';
@@ -25,13 +26,20 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       />
 
       {/* Main Full-Width Immersive Canvas */}
-      <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-[1440px] w-full mx-auto animate-fade">
+      <main className="flex-1 p-3.5 sm:p-6 md:p-8 max-w-[1440px] w-full mx-auto animate-fade pb-24 sm:pb-6">
         {children}
       </main>
 
-      <footer className="py-6 px-6 border-t border-white/[0.04] text-center text-xs text-zinc-600">
+      <footer className="hidden sm:block py-6 px-6 border-t border-white/[0.04] text-center text-xs text-zinc-600">
         <p>© {new Date().getFullYear()} XYVEX Creative Agency • Finance & Operations OS</p>
       </footer>
+
+      {/* Fixed Mobile Bottom Navigation Bar (sm:hidden) */}
+      <MobileBottomNav
+        onOpenAddClient={() => setAddClientOpen(true)}
+        onOpenAddPayment={() => setAddPaymentOpen(true)}
+        onOpenAddExpense={() => setAddExpenseOpen(true)}
+      />
 
       {/* Global Command Palette */}
       <CommandMenu
