@@ -90,6 +90,68 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSearch }) => {
                 </span>
               )}
             </button>
+
+            {/* Mobile Notifications Dropdown */}
+            {notificationsOpen && (
+              <div className="absolute right-0 mt-2 w-72 max-w-[calc(100vw-2rem)] bg-[#161619] border border-white/10 rounded-2xl shadow-2xl z-[100] p-3 animate-fade">
+                <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-white uppercase tracking-wider">
+                      Notifications
+                    </span>
+                    {unreadCount > 0 && (
+                      <span className="px-2 py-0.5 text-[10px] bg-[#e11d48]/20 text-[#fb7185] rounded-full font-mono font-bold">
+                        {unreadCount} new
+                      </span>
+                    )}
+                  </div>
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={markAllNotificationsRead}
+                      className="text-[11px] text-zinc-400 hover:text-white transition flex items-center gap-1"
+                    >
+                      <Check className="w-3 h-3" /> Mark read
+                    </button>
+                  )}
+                </div>
+
+                <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
+                  {notifications.length === 0 ? (
+                    <p className="text-xs text-zinc-500 text-center py-4">No notifications</p>
+                  ) : (
+                    notifications.map((notif) => (
+                      <div
+                        key={notif.id}
+                        onClick={() => markNotificationRead(notif.id)}
+                        className={`p-2.5 rounded-xl border text-left transition cursor-pointer ${
+                          notif.is_read
+                            ? 'bg-white/[0.02] border-white/5 opacity-70 hover:opacity-100'
+                            : 'bg-white/[0.06] border-white/15'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="text-xs font-medium text-white">{notif.title}</p>
+                          <span className="text-[10px] text-zinc-500 shrink-0">
+                            {formatDate(notif.created_at)}
+                          </span>
+                        </div>
+                        <p className="text-xs text-zinc-400 mt-1">{notif.message}</p>
+                        {notif.link && (
+                          <Link
+                            href={notif.link}
+                            onClick={() => setNotificationsOpen(false)}
+                            className="inline-flex items-center gap-1 text-[11px] text-[#fb7185] hover:underline mt-1.5 font-medium"
+                          >
+                            <span>View details</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </Link>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Profile Avatar */}
@@ -114,6 +176,41 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSearch }) => {
                 <User className="w-4 h-4 text-zinc-300" />
               </div>
             </button>
+
+            {/* Mobile Profile Dropdown Menu */}
+            {profileOpen && (
+              <div className="absolute right-0 mt-2 w-52 bg-[#161619] border border-white/10 rounded-2xl shadow-2xl z-[100] p-2 animate-fade text-xs">
+                <div className="px-3 py-2 border-b border-white/10 mb-1">
+                  <p className="font-semibold text-white">{displayName}</p>
+                  <p className="text-[11px] text-zinc-400 truncate">{user?.email || 'salih@xyvex.agency'}</p>
+                  <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[9px] font-mono uppercase bg-[#e11d48]/15 text-[#fb7185] font-bold">
+                    Super Admin
+                  </span>
+                </div>
+
+                <Link
+                  href="/settings"
+                  onClick={() => setProfileOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl text-zinc-300 hover:text-white hover:bg-white/[0.08] transition"
+                >
+                  <Settings className="w-3.5 h-3.5" />
+                  <span>Settings & Agency</span>
+                </Link>
+
+                <div className="border-t border-white/10 my-1 pt-1">
+                  <button
+                    onClick={() => {
+                      setProfileOpen(false);
+                      logout();
+                    }}
+                    className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>Logout</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

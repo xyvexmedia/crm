@@ -212,8 +212,8 @@ export default function DashboardPage() {
             </span>
           </button>
 
-          <button
-            onClick={() => router.push('/invoices/new')}
+          <Link
+            href="/invoices/new"
             className="flex flex-col items-center justify-center gap-1.5 p-2.5 rounded-2xl bg-[#141419] border border-white/[0.08] active:scale-95 transition"
           >
             <div className="w-10 h-10 rounded-2xl bg-purple-500/15 border border-purple-500/30 text-purple-400 flex items-center justify-center shadow-sm">
@@ -222,7 +222,7 @@ export default function DashboardPage() {
             <span className="text-[10px] font-semibold text-zinc-300 text-center leading-tight">
               Create Invoice
             </span>
-          </button>
+          </Link>
         </div>
 
         {/* Revenue vs Expenses Chart Card (Screen 1 Exact) */}

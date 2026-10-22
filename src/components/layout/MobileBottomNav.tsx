@@ -93,7 +93,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     <>
       {/* Fixed Bottom Nav Bar (Mobile Only: sm:hidden) */}
       <nav
-        className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0d0d12]/95 backdrop-blur-xl border-t border-white/[0.08] px-3 py-2 pb-safe shadow-[0_-10px_25px_rgba(0,0,0,0.5)]"
+        className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0d0d12]/95 backdrop-blur-xl border-t border-white/[0.08] px-3 py-1.5 pb-safe shadow-[0_-10px_25px_rgba(0,0,0,0.5)]"
         aria-label="Mobile Navigation"
       >
         <div className="flex items-center justify-around max-w-md mx-auto">
@@ -106,23 +106,20 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                 key={item.label}
                 href={item.href}
                 onClick={() => setMoreDrawerOpen(false)}
-                className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all duration-200 ${
-                  active ? 'text-[#a3e635]' : 'text-zinc-400 hover:text-zinc-200'
+                className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all duration-200 ${
+                  active
+                    ? 'bg-gradient-to-r from-[#991b1b] to-[#e11d48] text-white shadow-md shadow-rose-950/40'
+                    : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
-                <div className="relative">
-                  <Icon
-                    className={`w-5 h-5 transition-transform duration-200 ${
-                      active ? 'stroke-[2.5] scale-110' : 'stroke-[1.8]'
-                    }`}
-                  />
-                  {active && (
-                    <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-[#a3e635] rounded-full shadow-[0_0_8px_#a3e635]" />
-                  )}
-                </div>
+                <Icon
+                  className={`w-5 h-5 transition-transform duration-200 ${
+                    active ? 'stroke-[2.5]' : 'stroke-[1.8]'
+                  }`}
+                />
                 <span
-                  className={`text-[10px] mt-1 font-medium tracking-tight ${
-                    active ? 'font-semibold text-[#a3e635]' : 'text-zinc-400'
+                  className={`text-[10px] mt-0.5 font-medium tracking-tight ${
+                    active ? 'font-bold text-white' : 'text-zinc-400'
                   }`}
                 >
                   {item.label}
@@ -134,25 +131,25 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
           {/* More / Menu Button */}
           <button
             onClick={() => setMoreDrawerOpen(!moreDrawerOpen)}
-            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all duration-200 ${
-              isMoreActive ? 'text-[#a3e635]' : 'text-zinc-400 hover:text-zinc-200'
+            className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all duration-200 ${
+              isMoreActive
+                ? 'bg-gradient-to-r from-[#991b1b] to-[#e11d48] text-white shadow-md shadow-rose-950/40'
+                : 'text-zinc-400 hover:text-zinc-200'
             }`}
             aria-label="More navigation options"
           >
-            <div className="relative">
-              {moreDrawerOpen ? (
-                <X className="w-5 h-5 stroke-[2.5] text-[#a3e635]" />
-              ) : (
-                <Menu
-                  className={`w-5 h-5 transition-transform duration-200 ${
-                    isMoreActive ? 'stroke-[2.5] scale-110' : 'stroke-[1.8]'
-                  }`}
-                />
-              )}
-            </div>
+            {moreDrawerOpen ? (
+              <X className="w-5 h-5 stroke-[2.5] text-white" />
+            ) : (
+              <Menu
+                className={`w-5 h-5 transition-transform duration-200 ${
+                  isMoreActive ? 'stroke-[2.5]' : 'stroke-[1.8]'
+                }`}
+              />
+            )}
             <span
-              className={`text-[10px] mt-1 font-medium tracking-tight ${
-                isMoreActive ? 'font-semibold text-[#a3e635]' : 'text-zinc-400'
+              className={`text-[10px] mt-0.5 font-medium tracking-tight ${
+                isMoreActive ? 'font-bold text-white' : 'text-zinc-400'
               }`}
             >
               More
@@ -163,7 +160,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
 
       {/* "More" Slide-up Bottom Drawer for Mobile */}
       {moreDrawerOpen && (
-        <div className="sm:hidden fixed inset-0 z-40 bg-black/70 backdrop-blur-sm flex flex-col justify-end animate-fade">
+        <div className="sm:hidden fixed inset-0 z-[110] bg-black/80 backdrop-blur-sm flex flex-col justify-end animate-fade">
           {/* Backdrop click to close */}
           <div className="flex-1" onClick={() => setMoreDrawerOpen(false)} />
 

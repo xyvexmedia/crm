@@ -41,17 +41,9 @@ export default function ProjectsPage() {
   useEffect(() => {
     const isAnyModalOpen = showFiltersModal || !!activeProjectActions || !!deleteTarget;
     if (isAnyModalOpen) {
-      const scrollY = window.scrollY;
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = '100%';
       document.body.style.overflow = 'hidden';
       return () => {
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.width = '';
         document.body.style.overflow = '';
-        window.scrollTo(0, scrollY);
       };
     }
   }, [showFiltersModal, activeProjectActions, deleteTarget]);
@@ -116,30 +108,17 @@ export default function ProjectsPage() {
       {/* 1. MOBILE CLIENT PROJECTS VIEW (Strictly matching Mockup) */}
       {/* ======================================================== */}
       <div className="block sm:hidden space-y-4 pb-8">
-        {/* Mobile Header: OPERATIONS & DELIVERABLES + Title + Subtitle + Notification & Profile */}
-        <div className="flex items-start justify-between pt-1">
-          <div>
-            <span className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase">
-              OPERATIONS & DELIVERABLES
-            </span>
-            <h1 className="text-xl font-bold tracking-tight text-white mt-0.5">
-              Client Projects
-            </h1>
-            <p className="text-[11px] text-zinc-400 mt-0.5 leading-snug">
-              Active campaigns, retainer services, and budget commitments
-            </p>
-          </div>
-          <div className="flex items-center gap-2 pt-1 shrink-0">
-            <div className="relative">
-              <div className="w-8 h-8 rounded-full bg-white/[0.06] border border-white/10 flex items-center justify-center text-zinc-300">
-                <Bell className="w-4 h-4" />
-              </div>
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500" />
-            </div>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#881337] to-[#e11d48] border border-rose-500/30 text-white font-bold text-xs flex items-center justify-center shadow-sm">
-              S
-            </div>
-          </div>
+        {/* Mobile Header: OPERATIONS & DELIVERABLES + Title + Subtitle */}
+        <div className="pt-1">
+          <span className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase">
+            OPERATIONS & DELIVERABLES
+          </span>
+          <h1 className="text-xl font-bold tracking-tight text-white mt-0.5">
+            Client Projects
+          </h1>
+          <p className="text-[11px] text-zinc-400 mt-0.5 leading-snug">
+            Active campaigns, retainer services, and budget commitments
+          </p>
         </div>
 
         {/* Full-width + Create Project Button */}
@@ -262,10 +241,10 @@ export default function ProjectsPage() {
               const initials = (client?.company_name || project.name || 'PR').slice(0, 2).toUpperCase();
 
               return (
-                <div
+                <Link
                   key={project.id}
-                  onClick={() => router.push(`/projects/${project.id}`)}
-                  className="bg-[#121217] border border-white/[0.08] hover:border-white/20 rounded-2xl p-3.5 transition active:scale-[0.99] cursor-pointer shadow-sm relative overflow-hidden"
+                  href={`/projects/${project.id}`}
+                  className="block bg-[#121217] border border-white/[0.08] hover:border-white/20 rounded-2xl p-3.5 transition active:scale-[0.99] shadow-sm relative overflow-hidden text-left"
                 >
                   {/* Top row: Avatar + Name + Subtitle + Status Pill + More menu */}
                   <div className="flex items-start gap-3">
@@ -299,6 +278,7 @@ export default function ProjectsPage() {
                           <button
                             type="button"
                             onClick={(e) => {
+                              e.preventDefault();
                               e.stopPropagation();
                               setActiveProjectActions(project);
                             }}
@@ -353,7 +333,7 @@ export default function ProjectsPage() {
                       style={{ width: `${percent}%` }}
                     />
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>
@@ -361,7 +341,7 @@ export default function ProjectsPage() {
 
         {/* Filters Bottom Sheet / Modal (Screen 5) */}
         {showFiltersModal && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200">
             <div className="w-full sm:max-w-md bg-[#0e0e12] border border-white/10 rounded-t-3xl sm:rounded-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
               <div className="flex items-center justify-between p-4 border-b border-white/10 shrink-0">
                 <h3 className="text-sm font-bold text-white">Filters</h3>
@@ -431,7 +411,7 @@ export default function ProjectsPage() {
                 </div>
               </div>
 
-              <div className="p-3 border-t border-white/10 shrink-0 bg-[#0e0e12] flex gap-2">
+              <div className="p-3 pb-safe pb-4 border-t border-white/10 shrink-0 bg-[#0e0e12] flex gap-2">
                 <button
                   type="button"
                   onClick={() => {
@@ -457,8 +437,8 @@ export default function ProjectsPage() {
 
         {/* Quick Actions Sheet for Project */}
         {activeProjectActions && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200">
-            <div className="w-full sm:max-w-sm bg-[#0e0e12] border border-white/10 rounded-t-3xl sm:rounded-2xl p-4 shadow-2xl space-y-2">
+          <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200">
+            <div className="w-full sm:max-w-sm bg-[#0e0e12] border border-white/10 rounded-t-3xl sm:rounded-2xl p-4 pb-safe pb-5 shadow-2xl space-y-2">
               <div className="flex items-center justify-between pb-3 border-b border-white/10">
                 <h4 className="text-xs font-bold text-white truncate">{activeProjectActions.name}</h4>
                 <button

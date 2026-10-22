@@ -198,16 +198,15 @@ export default function ProjectDetailPage() {
 
         {/* 4 Action Buttons Row: Edit | Record Payment | View Client | More */}
         <div className="grid grid-cols-4 gap-2">
-          <button
-            type="button"
-            onClick={() => router.push(`/projects/${project.id}/edit`)}
+          <Link
+            href={`/projects/${project.id}/edit`}
             className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl bg-[#141419] border border-white/[0.08] active:scale-95 transition text-zinc-300 hover:text-white"
           >
             <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
               <Pencil className="w-3.5 h-3.5 text-zinc-300" />
             </div>
             <span className="text-[10px] font-medium text-zinc-400">Edit</span>
-          </button>
+          </Link>
 
           <button
             type="button"
@@ -220,18 +219,28 @@ export default function ProjectDetailPage() {
             <span className="text-[10px] font-medium text-zinc-400">Record Payment</span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              if (client) router.push(`/clients/${client.id}`);
-            }}
-            className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl bg-[#141419] border border-white/[0.08] active:scale-95 transition text-zinc-300 hover:text-white"
-          >
-            <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
-              <User className="w-3.5 h-3.5 text-blue-400" />
-            </div>
-            <span className="text-[10px] font-medium text-zinc-400">View Client</span>
-          </button>
+          {client ? (
+            <Link
+              href={`/clients/${client.id}`}
+              className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl bg-[#141419] border border-white/[0.08] active:scale-95 transition text-zinc-300 hover:text-white"
+            >
+              <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
+                <User className="w-3.5 h-3.5 text-blue-400" />
+              </div>
+              <span className="text-[10px] font-medium text-zinc-400">View Client</span>
+            </Link>
+          ) : (
+            <button
+              type="button"
+              disabled
+              className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl bg-[#141419] border border-white/[0.08] opacity-50 text-zinc-400"
+            >
+              <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
+                <User className="w-3.5 h-3.5 text-blue-400" />
+              </div>
+              <span className="text-[10px] font-medium text-zinc-400">View Client</span>
+            </button>
+          )}
 
           <button
             type="button"
@@ -447,8 +456,8 @@ export default function ProjectDetailPage() {
 
         {/* More Options Modal Sheet */}
         {showMoreActions && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200">
-            <div className="w-full sm:max-w-sm bg-[#0e0e12] border border-white/10 rounded-t-3xl sm:rounded-2xl p-4 shadow-2xl space-y-2">
+          <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200">
+            <div className="w-full sm:max-w-sm bg-[#0e0e12] border border-white/10 rounded-t-3xl sm:rounded-2xl p-4 pb-safe pb-5 shadow-2xl space-y-2">
               <div className="flex items-center justify-between pb-3 border-b border-white/10">
                 <h4 className="text-xs font-bold text-white truncate">{project.name}</h4>
                 <button

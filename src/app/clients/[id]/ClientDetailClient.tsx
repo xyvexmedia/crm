@@ -93,30 +93,14 @@ export default function ClientDetailPage() {
     const isAnyModalOpen =
       showFullDetailsModal ||
       showAllPaymentsModal ||
-      showAllExpensesModal ||
-      addPaymentOpen ||
-      addExpenseOpen;
+      showAllExpensesModal;
     if (isAnyModalOpen) {
-      const scrollY = window.scrollY;
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = '100%';
       document.body.style.overflow = 'hidden';
       return () => {
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.width = '';
         document.body.style.overflow = '';
-        window.scrollTo(0, scrollY);
       };
     }
-  }, [
-    showFullDetailsModal,
-    showAllPaymentsModal,
-    showAllExpensesModal,
-    addPaymentOpen,
-    addExpenseOpen,
-  ]);
+  }, [showFullDetailsModal, showAllPaymentsModal, showAllExpensesModal]);
 
   const percentPaid =
     report.totalBudget > 0
@@ -375,14 +359,14 @@ export default function ClientDetailPage() {
         <button
           type="button"
           onClick={() => setShowFullDetailsModal(true)}
-          className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-[#991b1b] via-[#881337] to-[#e11d48] hover:opacity-95 active:scale-[0.99] text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-rose-950/40 transition"
+          className="w-full py-3.5 px-4 mb-6 rounded-2xl bg-gradient-to-r from-[#991b1b] via-[#881337] to-[#e11d48] hover:opacity-95 active:scale-[0.99] text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-rose-950/40 transition"
         >
           View Full Details <ArrowRight className="w-3.5 h-3.5" />
         </button>
 
         {/* Modal: Full Client Details */}
         {showFullDetailsModal && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200">
             <div className="w-full sm:max-w-lg bg-[#0e0e12] border border-white/10 rounded-t-3xl sm:rounded-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
               {/* Header */}
               <div className="flex items-center justify-between p-4 border-b border-white/10 shrink-0">
@@ -514,7 +498,7 @@ export default function ClientDetailPage() {
               </div>
 
               {/* Footer */}
-              <div className="p-3 border-t border-white/10 shrink-0 bg-[#0e0e12]">
+              <div className="p-3 pb-safe pb-4 border-t border-white/10 shrink-0 bg-[#0e0e12]">
                 <button
                   type="button"
                   onClick={() => setShowFullDetailsModal(false)}
@@ -529,7 +513,7 @@ export default function ClientDetailPage() {
 
         {/* Modal: All Payments */}
         {showAllPaymentsModal && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200">
             <div className="w-full sm:max-w-lg bg-[#0e0e12] border border-white/10 rounded-t-3xl sm:rounded-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
               <div className="flex items-center justify-between p-4 border-b border-white/10 shrink-0">
                 <div>
@@ -576,7 +560,7 @@ export default function ClientDetailPage() {
                 )}
               </div>
 
-              <div className="p-3 border-t border-white/10 shrink-0 bg-[#0e0e12] flex gap-2">
+              <div className="p-3 pb-safe pb-4 border-t border-white/10 shrink-0 bg-[#0e0e12] flex gap-2">
                 <button
                   type="button"
                   onClick={() => {
@@ -601,7 +585,7 @@ export default function ClientDetailPage() {
 
         {/* Modal: All Expenses */}
         {showAllExpensesModal && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200">
             <div className="w-full sm:max-w-lg bg-[#0e0e12] border border-white/10 rounded-t-3xl sm:rounded-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
               <div className="flex items-center justify-between p-4 border-b border-white/10 shrink-0">
                 <div>
@@ -652,7 +636,7 @@ export default function ClientDetailPage() {
                 )}
               </div>
 
-              <div className="p-3 border-t border-white/10 shrink-0 bg-[#0e0e12] flex gap-2">
+              <div className="p-3 pb-safe pb-4 border-t border-white/10 shrink-0 bg-[#0e0e12] flex gap-2">
                 <button
                   type="button"
                   onClick={() => {
