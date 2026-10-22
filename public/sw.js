@@ -1,4 +1,4 @@
-const CACHE_NAME = 'xyvex-crm-v1';
+const CACHE_NAME = 'xyvex-crm-v2';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -8,7 +8,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+        keys.map((key) => caches.delete(key))
       );
     })
   );
@@ -17,9 +17,8 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  // Always fetch live from network first, so user immediately sees updates
   event.respondWith(
-    fetch(event.request)
-      .then((response) => response)
-      .catch(() => caches.match(event.request))
+    fetch(event.request).catch(() => caches.match(event.request))
   );
 });
