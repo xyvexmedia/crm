@@ -50,7 +50,7 @@ export default function ClientsPage() {
       if (filter === 'all') return true;
       if (filter === 'active') return report.client.status === 'active';
       if (filter === 'completed') return report.client.status === 'completed';
-      if (filter === 'pending') return report.pendingAmount > 0;
+      if (filter === 'pending') return report.client.status === 'pending' || report.pendingAmount > 0;
       if (filter === 'overdue') return report.isOverdue;
 
       return true;
@@ -139,7 +139,7 @@ export default function ClientsPage() {
                 : 'bg-white/[0.05] text-zinc-400 border border-white/[0.08]'
             }`}
           >
-            Pending ({clientReports.filter((r) => r.pendingAmount > 0).length})
+            Pending ({clientReports.filter((r) => r.client.status === 'pending' || r.pendingAmount > 0).length})
           </button>
           <button
             onClick={() => setFilter('completed')}

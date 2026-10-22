@@ -1,7 +1,18 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Plus, Sparkles } from 'lucide-react';
+import {
+  X,
+  Plus,
+  Sparkles,
+  Building2,
+  Phone,
+  Mail,
+  Activity,
+  Briefcase,
+  IndianRupee,
+  Calendar,
+} from 'lucide-react';
 import { useData } from '@/context/data-context';
 import { ClientStatus } from '@/types';
 
@@ -11,6 +22,17 @@ interface AddClientModalProps {
   onSuccess?: (clientId: string) => void;
 }
 
+const SERVICES = [
+  'Meta Ads',
+  'Google Ads',
+  'SEO',
+  'Social Media',
+  'Design',
+  'CRM',
+  'Website',
+  'Other',
+];
+
 export const AddClientModal: React.FC<AddClientModalProps> = ({
   isOpen,
   onClose,
@@ -18,24 +40,15 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
 }) => {
   const { addClient, addProject, addPayment } = useData();
 
-  // Client Details
-  const [name, setName] = useState('');
+  // The 8 Exact Fields
   const [companyName, setCompanyName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [whatsapp, setWhatsapp] = useState('');
-  const [address, setAddress] = useState('');
-  const [billingDate, setBillingDate] = useState('');
   const [status, setStatus] = useState<ClientStatus>('active');
-  const [notes, setNotes] = useState('');
-
-  // Initial Project Details
-  const [projectName, setProjectName] = useState('');
-  const [service, setService] = useState('Meta Ads Management');
+  const [service, setService] = useState('Meta Ads');
   const [budget, setBudget] = useState('');
   const [advancePayment, setAdvancePayment] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'UPI' | 'Bank Transfer' | 'Cash' | 'Card'>('UPI');
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [billingDate, setBillingDate] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -44,8 +57,9 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!companyName.trim() || !name.trim()) {
-      setError('Company Name and Contact Name are required.');
+    const trimmedCompany = companyName.trim();
+    if (!trimmedCompany) {
+      setError('Company / Brand Name is required.');
       return;
     }
 
@@ -55,28 +69,26 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
     try {
       // 1. Create Client
       const newClient = await addClient({
-        name: name.trim(),
-        company_name: companyName.trim(),
+        company_name: trimmedCompany,
+        name: trimmedCompany,
         phone: phone.trim(),
         email: email.trim(),
-        whatsapp: whatsapp.trim() || phone.trim(),
-        address: address.trim(),
-        billing_date: billingDate || undefined,
+        whatsapp: phone.trim(),
         status,
-        notes: notes.trim(),
+        billing_date: billingDate || undefined,
       });
 
-      // 2. Create Project if provided
+      // 2. Create Initial Project with Service and Budget
       const budgetNum = Number(budget) || 0;
       let newProj = null;
-      if (projectName.trim() || budgetNum > 0) {
+      if (budgetNum > 0 || service) {
         newProj = await addProject({
           client_id: newClient.id,
-          name: projectName.trim() || `${service} Project`,
+          name: `${trimmedCompany} - ${service}`,
           service,
           budget: budgetNum,
-          start_date: startDate,
-          status: 'active',
+          start_date: new Date().toISOString().split('T')[0],
+          status: status === 'completed' ? 'completed' : 'active',
           assigned_to: 'Salih (Lead)',
         });
       }
@@ -89,11 +101,21 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
           project_id: newProj?.id,
           amount: advanceNum,
           payment_type: 'advance',
-          payment_method: paymentMethod,
-          payment_date: startDate,
-          notes: 'Initial advance payment on onboarding',
+          payment_method: 'UPI',
+          payment_date: new Date().toISOString().split('T')[0],
+          notes: 'Advance payment on client setup',
         });
       }
+
+      // Reset form
+      setCompanyName('');
+      setPhone('');
+      setEmail('');
+      setStatus('active');
+      setService('Meta Ads');
+      setBudget('');
+      setAdvancePayment('');
+      setBillingDate('');
 
       onClose();
       if (onSuccess) onSuccess(newClient.id);
@@ -106,246 +128,211 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-fade"
       onClick={(e) => {
         if (e.target === e.currentTarget && !loading) onClose();
       }}
     >
-      <div className="relative w-full max-w-2xl glass-panel bg-[#0d0d12]/95 border border-white/20 p-6 shadow-2xl my-8">
-        <button
-          onClick={onClose}
-          disabled={loading}
-          className="absolute top-4 right-4 p-1 text-zinc-400 hover:text-white transition"
-          aria-label="Close modal"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        <div className="flex items-center gap-2 mb-4 pb-3 border-b border-white/10">
-          <Sparkles className="w-5 h-5 text-white" />
-          <div>
-            <h2 className="text-base font-semibold text-white tracking-wide">
-              Add New Client
-            </h2>
-            <p className="text-xs text-zinc-400">
-              Set up client identity, project scope, budget and advance payment
-            </p>
+      <div className="relative w-full max-w-lg bg-[#111116] border border-white/10 rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 shadow-2xl max-h-[92vh] sm:max-h-[90vh] flex flex-col my-0 sm:my-8 animate-fade">
+        {/* Modal Header */}
+        <div className="flex items-center justify-between pb-3.5 mb-3 border-b border-white/[0.08] shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-[#e11d48]/15 border border-[#e11d48]/30 flex items-center justify-center text-[#e11d48]">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-white tracking-tight">
+                Add New Client
+              </h2>
+              <p className="text-[11px] text-zinc-400">
+                Setup client profile, scope & finances
+              </p>
+            </div>
           </div>
+          <button
+            onClick={onClose}
+            disabled={loading}
+            className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition active:scale-95"
+            aria-label="Close modal"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
         {error && (
-          <div className="p-3 mb-4 text-xs rounded-lg bg-rose-500/10 border border-rose-500/25 text-rose-300">
+          <div className="p-3 mb-3 text-xs rounded-xl bg-rose-500/10 border border-rose-500/25 text-rose-300 shrink-0">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5 text-xs">
-          {/* SECTION 1: Client Information */}
+        {/* Scrollable Form Body */}
+        <form onSubmit={handleSubmit} className="overflow-y-auto space-y-3.5 pr-1 flex-1 text-xs">
+          {/* 1. Company / Brand Name* */}
           <div>
-            <h3 className="text-xs uppercase tracking-wider text-zinc-400 font-semibold mb-3">
-              1. Client & Business Information
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-zinc-300 mb-1 font-medium">Company / Brand Name *</label>
+            <label className="block text-zinc-300 mb-1.5 font-semibold">
+              Company / Brand Name <span className="text-[#e11d48]">*</span>
+            </label>
+            <div className="relative flex items-center">
+              <Building2 className="w-4 h-4 text-zinc-500 absolute left-3.5 pointer-events-none" />
+              <input
+                type="text"
+                required
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                placeholder="e.g. Apex Healthcare, Zenith Cafe"
+                className="glass-input glass-input-with-icon !py-2.5 text-sm font-medium placeholder:text-zinc-500"
+              />
+            </div>
+          </div>
+
+          {/* 2. Phone Number & 3. Email */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-zinc-300 mb-1.5 font-semibold">
+                Phone Number
+              </label>
+              <div className="relative flex items-center">
+                <Phone className="w-4 h-4 text-zinc-500 absolute left-3.5 pointer-events-none" />
                 <input
-                  type="text"
-                  required
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  placeholder="e.g. Apex Healthcare"
-                  className="glass-input"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+91 98470 00000"
+                  className="glass-input glass-input-with-icon !py-2.5 text-sm font-medium placeholder:text-zinc-500"
                 />
               </div>
+            </div>
 
-              <div>
-                <label className="block text-zinc-300 mb-1 font-medium">Contact Person Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Dr. Rayan"
-                  className="glass-input"
-                />
-              </div>
-
-              <div>
-                <label className="block text-zinc-300 mb-1 font-medium">Email</label>
+            <div>
+              <label className="block text-zinc-300 mb-1.5 font-semibold">
+                Email
+              </label>
+              <div className="relative flex items-center">
+                <Mail className="w-4 h-4 text-zinc-500 absolute left-3.5 pointer-events-none" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="contact@brand.com"
-                  className="glass-input"
+                  className="glass-input glass-input-with-icon !py-2.5 text-sm font-medium placeholder:text-zinc-500"
                 />
               </div>
+            </div>
+          </div>
 
-              <div>
-                <label className="block text-zinc-300 mb-1 font-medium">Phone Number</label>
-                <input
-                  type="text"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+91 98470 00000"
-                  className="glass-input"
-                />
-              </div>
-
-              <div>
-                <label className="block text-zinc-300 mb-1 font-medium">WhatsApp Number</label>
-                <input
-                  type="text"
-                  value={whatsapp}
-                  onChange={(e) => setWhatsapp(e.target.value)}
-                  placeholder="+91 98470 00000"
-                  className="glass-input"
-                />
-              </div>
-
-              <div>
-                <label className="block text-zinc-300 mb-1 font-medium">Status</label>
+          {/* 4. Status & 5. Service */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-zinc-300 mb-1.5 font-semibold">
+                Status
+              </label>
+              <div className="relative flex items-center">
+                <Activity className="w-4 h-4 text-zinc-500 absolute left-3.5 pointer-events-none" />
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value as ClientStatus)}
-                  className="glass-input bg-zinc-900"
+                  className="glass-input glass-input-with-icon !py-2.5 text-sm bg-[#1a1a1e] text-white cursor-pointer"
                 >
                   <option value="active">Active</option>
-                  <option value="lead">Lead</option>
+                  <option value="pending">Pending</option>
                   <option value="completed">Completed</option>
-                  <option value="paused">Paused</option>
-                  <option value="cancelled">Cancelled</option>
                 </select>
               </div>
-
-              <div className="sm:col-span-2">
-                <label className="block text-zinc-300 mb-1 font-medium">Office / City Address</label>
-                <input
-                  type="text"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="Kochi, Kerala, India"
-                  className="glass-input"
-                />
-              </div>
             </div>
-          </div>
 
-          {/* SECTION 2: Project Scope & Financial Agreement */}
-          <div className="pt-3 border-t border-white/10">
-            <h3 className="text-xs uppercase tracking-wider text-zinc-400 font-semibold mb-3">
-              2. Initial Project & Financials
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-zinc-300 mb-1 font-medium">Primary Agency Service</label>
+            <div>
+              <label className="block text-zinc-300 mb-1.5 font-semibold">
+                Service
+              </label>
+              <div className="relative flex items-center">
+                <Briefcase className="w-4 h-4 text-zinc-500 absolute left-3.5 pointer-events-none" />
                 <select
                   value={service}
                   onChange={(e) => setService(e.target.value)}
-                  className="glass-input bg-zinc-900"
+                  className="glass-input glass-input-with-icon !py-2.5 text-sm bg-[#1a1a1e] text-white cursor-pointer"
                 >
-                  <option value="Meta Ads Management">Meta Ads Management (FB/Insta)</option>
-                  <option value="Google Ads Management">Google Ads Management</option>
-                  <option value="Social Media Management">Social Media Management (SMM)</option>
-                  <option value="Creative Design & Video">Creative Design & Video Reels</option>
-                  <option value="SEO & Web Development">SEO & Web Development</option>
-                  <option value="Full Funnel Growth Retainer">Full Funnel Growth Retainer</option>
+                  {SERVICES.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
                 </select>
               </div>
+            </div>
+          </div>
 
-              <div>
-                <label className="block text-zinc-300 mb-1 font-medium">Project Name</label>
-                <input
-                  type="text"
-                  value={projectName}
-                  onChange={(e) => setProjectName(e.target.value)}
-                  placeholder="e.g. Q4 Growth Campaign"
-                  className="glass-input"
-                />
-              </div>
-
-              <div>
-                <label className="block text-zinc-300 mb-1 font-medium">Agreed Client Budget (₹)</label>
+          {/* 6. Total Budget (₹) & 7. Advance Payment (₹) */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-zinc-300 mb-1.5 font-semibold">
+                Total Budget (₹)
+              </label>
+              <div className="relative flex items-center">
+                <span className="text-zinc-400 font-bold absolute left-3.5 text-sm pointer-events-none">
+                  ₹
+                </span>
                 <input
                   type="number"
-                  min="0"
-                  step="500"
                   value={budget}
                   onChange={(e) => setBudget(e.target.value)}
                   placeholder="e.g. 45000"
-                  className="glass-input font-mono"
+                  className="glass-input !pl-8 !pr-3 !py-2.5 text-sm font-medium font-mono placeholder:text-zinc-500"
                 />
               </div>
+            </div>
 
-              <div>
-                <label className="block text-zinc-300 mb-1 font-medium">Advance Payment Received (₹)</label>
+            <div>
+              <label className="block text-zinc-300 mb-1.5 font-semibold">
+                Advance Payment (₹)
+              </label>
+              <div className="relative flex items-center">
+                <span className="text-zinc-400 font-bold absolute left-3.5 text-sm pointer-events-none">
+                  ₹
+                </span>
                 <input
                   type="number"
-                  min="0"
-                  step="500"
                   value={advancePayment}
                   onChange={(e) => setAdvancePayment(e.target.value)}
-                  placeholder="e.g. 20000 (Optional)"
-                  className="glass-input font-mono"
-                />
-              </div>
-
-              {Number(advancePayment) > 0 && (
-                <div>
-                  <label className="block text-zinc-300 mb-1 font-medium">Payment Method</label>
-                  <select
-                    value={paymentMethod}
-                    onChange={(e) => setPaymentMethod(e.target.value as any)}
-                    className="glass-input bg-zinc-900"
-                  >
-                    <option value="UPI">UPI (GPay / PhonePe / Paytm)</option>
-                    <option value="Bank Transfer">Bank Transfer (NEFT / IMPS)</option>
-                    <option value="Cash">Cash</option>
-                    <option value="Card">Debit / Credit Card</option>
-                  </select>
-                </div>
-              )}
-
-              <div>
-                <label className="block text-zinc-300 mb-1 font-medium">Next Billing / Due Date</label>
-                <input
-                  type="date"
-                  value={billingDate}
-                  onChange={(e) => setBillingDate(e.target.value)}
-                  className="glass-input"
-                />
-              </div>
-
-              <div className="sm:col-span-2">
-                <label className="block text-zinc-300 mb-1 font-medium">Internal Notes & Deliverables</label>
-                <textarea
-                  rows={2}
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Contract terms, deliverables agreement, target ROAS..."
-                  className="glass-input resize-none"
+                  placeholder="e.g. 20000"
+                  className="glass-input !pl-8 !pr-3 !py-2.5 text-sm font-medium font-mono placeholder:text-zinc-500"
                 />
               </div>
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
+          {/* 8. Billing / Due Date */}
+          <div>
+            <label className="block text-zinc-300 mb-1.5 font-semibold">
+              Billing / Due Date
+            </label>
+            <div className="relative flex items-center">
+              <Calendar className="w-4 h-4 text-zinc-500 absolute left-3.5 pointer-events-none" />
+              <input
+                type="date"
+                value={billingDate}
+                onChange={(e) => setBillingDate(e.target.value)}
+                className="glass-input glass-input-with-icon !py-2.5 text-sm text-white"
+              />
+            </div>
+          </div>
+
+          {/* Sticky Actions */}
+          <div className="pt-3 border-t border-white/10 flex items-center justify-end gap-3 shrink-0">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="glass-button-secondary py-2 px-4"
+              className="py-2.5 px-4 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-zinc-300 hover:text-white text-xs font-semibold transition"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="glass-button-primary py-2 px-5"
+              className="py-2.5 px-5 rounded-xl bg-gradient-to-r from-[#e11d48] to-[#be123c] hover:brightness-110 active:scale-95 text-white text-xs font-bold shadow-[0_4px_20px_rgba(225,29,72,0.35)] transition flex items-center gap-1.5 disabled:opacity-50"
             >
-              <Plus className="w-4 h-4" />
-              <span>{loading ? 'Creating Client...' : 'Add Client'}</span>
+              <Plus className="w-4 h-4 stroke-[2.5]" />
+              <span>{loading ? 'Adding...' : 'Add Client'}</span>
             </button>
           </div>
         </form>
