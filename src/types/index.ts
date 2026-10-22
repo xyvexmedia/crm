@@ -1,14 +1,17 @@
-export type ClientStatus = 'active' | 'pending' | 'completed' | 'lead' | 'paused' | 'cancelled';
+export type ClientStatus = 'active' | 'pending' | 'completed' | 'inactive' | 'lead' | 'paused' | 'cancelled';
 
 export interface Client {
   id: string;
   name: string;
   company_name: string;
+  contact_person?: string;
   phone: string;
   email: string;
   whatsapp?: string;
+  location?: string;
   address?: string;
   status: ClientStatus;
+  total_budget?: number;
   billing_date?: string; // YYYY-MM-DD
   notes?: string;
   created_at: string;
@@ -44,6 +47,7 @@ export interface Payment {
   payment_type: PaymentType;
   payment_method: PaymentMethod;
   payment_date: string; // YYYY-MM-DD
+  reference?: string;
   notes?: string;
   receipt_url?: string;
   created_at: string;
@@ -108,6 +112,7 @@ export interface Invoice {
   client_id: string;
   invoice_number: string;
   invoice_date: string;
+  issue_date?: string;
   due_date: string;
   subtotal: number;
   tax: number;

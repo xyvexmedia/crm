@@ -194,12 +194,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const clientReports = useMemo<ClientFinancialReport[]>(() => {
     return clients.map((client) => {
       const clientProjects = projects.filter((p) => p.client_id === client.id);
-      const totalBudget = clientProjects.reduce((sum, p) => sum + Number(p.budget || 0), 0);
+      const projectsBudget = clientProjects.reduce((sum, p) => sum + Number(p.budget || 0), 0);
+      const directBudget = Number(client.total_budget || 0);
+      const totalBudget = Math.max(directBudget, projectsBudget);
 
       const clientPayments = payments.filter((p) => p.client_id === client.id);
       const amountReceived = clientPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
 
-      // Pending Amount = Client Budget - Total Amount Received
+      // Pending Amount = Client Budget - Total Amount Received (never negative)
       const pendingAmount = Math.max(0, totalBudget - amountReceived);
 
       // Client Expenses = Money spent specifically for this client
@@ -209,7 +211,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Client Profit = Amount Received - Client Expenses (NEVER unpaid budget!)
       const clientProfit = amountReceived - clientExpensesTotal;
       const profitMargin = amountReceived > 0 ? (clientProfit / amountReceived) * 100 : null;
-      const paymentProgress = totalBudget > 0 ? Math.min(100, Math.round((amountReceived / totalBudget) * 100)) : 100;
+      const paymentProgress = totalBudget > 0 ? Math.min(100, Math.round((amountReceived / totalBudget) * 100)) : (amountReceived > 0 ? 100 : 0);
 
       let isOverdue = false;
       if (client.billing_date && pendingAmount > 0) {
@@ -286,11 +288,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         .insert([{
           name: clientData.name,
           company_name: clientData.company_name,
+          contact_person: clientData.contact_person || null,
           phone: clientData.phone || null,
           email: clientData.email || null,
           whatsapp: clientData.whatsapp || null,
-          address: clientData.address || null,
+          location: clientData.location || clientData.address || null,
+          address: clientData.location || clientData.address || null,
           status: clientData.status || 'active',
+          total_budget: clientData.total_budget || 0,
           billing_date: clientData.billing_date || null,
           notes: clientData.notes || null,
         }])
@@ -431,6 +436,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           payment_type: paymentData.payment_type || 'partial',
           payment_method: paymentData.payment_method || 'UPI',
           payment_date: paymentData.payment_date || new Date().toISOString().split('T')[0],
+          reference: paymentData.reference || null,
           receipt_url: paymentData.receipt_url || null,
           notes: paymentData.notes || null,
         }])
