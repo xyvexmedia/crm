@@ -2,13 +2,20 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/auth-context';
 
 export default function HomePage() {
   const router = useRouter();
+  const { user, isLoading } = useAuth();
 
   useEffect(() => {
-    router.replace('/dashboard');
-  }, [router]);
+    if (isLoading) return;
+    if (user) {
+      router.replace('/dashboard');
+    } else {
+      router.replace('/login');
+    }
+  }, [user, isLoading, router]);
 
   return (
     <div className="min-h-screen bg-[#08080a] flex items-center justify-center text-white font-sans">

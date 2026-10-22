@@ -35,6 +35,7 @@ const navItems = [
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile }) => {
+  const basePath = process.env.NODE_ENV === 'production' ? '/crm' : '';
   const pathname = usePathname();
   const { logout } = useAuth();
 
@@ -50,7 +51,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile }) =
           {/* Logo Mark: Stylized Abstract X / V */}
           <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center bg-black/40">
             <img
-              src="/xyvex-logo.jpeg"
+              src={`${basePath}/xyvex-logo.jpeg`}
               alt="XYVEX"
               className="w-full h-full object-cover"
               onError={(e) => {

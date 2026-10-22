@@ -34,6 +34,7 @@ const navTabs = [
 ];
 
 export const Header: React.FC<HeaderProps> = ({ onOpenSearch }) => {
+  const basePath = process.env.NODE_ENV === 'production' ? '/crm' : '';
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const { notifications, markNotificationRead, markAllNotificationsRead } = useData();
@@ -43,6 +44,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSearch }) => {
 
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+
+  const avatarSrc = user?.avatar?.startsWith('/')
+    ? `${basePath}${user.avatar}`
+    : (user?.avatar || `${basePath}/xyvex-logo.jpeg`);
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
@@ -116,7 +121,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSearch }) => {
             >
               <div className="w-full h-full rounded-full bg-zinc-900 overflow-hidden flex items-center justify-center">
                 <img
-                  src={user?.avatar || '/xyvex-logo.jpeg'}
+                  src={avatarSrc}
                   alt={displayName}
                   className="w-full h-full object-cover"
                   onError={(e) => {
@@ -283,7 +288,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSearch }) => {
             >
               <div className="w-full h-full rounded-full bg-zinc-900 overflow-hidden flex items-center justify-center">
                 <img
-                  src={user?.avatar || '/xyvex-logo.jpeg'}
+                  src={avatarSrc}
                   alt={displayName}
                   className="w-full h-full object-cover"
                   onError={(e) => {

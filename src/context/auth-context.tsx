@@ -26,7 +26,7 @@ const defaultAdminUser: UserProfile = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserProfile | null>(defaultAdminUser);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
   const pathname = usePathname();
@@ -37,11 +37,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       try {
         const storedUser = localStorage.getItem('xyvex_auth_user');
         if (storedUser) {
-          setUser(JSON.parse(storedUser));
-        } else {
-          // Default to Salih for smooth demo experience
-          setUser(defaultAdminUser);
-          localStorage.setItem('xyvex_auth_user', JSON.stringify(defaultAdminUser));
+          try {
+            setUser(JSON.parse(storedUser));
+          } catch {
+            localStorage.removeItem('xyvex_auth_user');
+          }
         }
 
         // Also check Supabase auth if session exists

@@ -9,9 +9,10 @@ import { useAuth } from '@/context/auth-context';
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
+  const basePath = process.env.NODE_ENV === 'production' ? '/crm' : '';
 
   const [email, setEmail] = useState('salih@xyvex.agency');
-  const [password, setPassword] = useState('••••••••');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -47,7 +48,7 @@ export default function LoginPage() {
         <div className="flex flex-col items-center text-center mb-8">
           <div className="w-16 h-16 rounded-2xl bg-white/[0.08] border border-white/20 p-2 shadow-inner flex items-center justify-center mb-3">
             <img
-              src="/xyvex-logo.jpeg"
+              src={`${basePath}/xyvex-logo.jpeg`}
               alt="XYVEX"
               className="w-full h-full object-cover rounded-xl"
               onError={(e) => {
