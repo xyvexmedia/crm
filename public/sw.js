@@ -1,4 +1,4 @@
-const CACHE_NAME = 'xyvex-crm-v2';
+const CACHE_NAME = 'xyvex-crm-v3';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
