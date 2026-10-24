@@ -17,6 +17,10 @@ import {
   Bell,
   X,
   Folder,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  IndianRupee,
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useData } from '@/context/data-context';
@@ -48,6 +52,14 @@ export default function ProjectsPage() {
     }
   }, [showFiltersModal, activeProjectActions, deleteTarget]);
 
+  // ── Only show ONE-TIME client projects ──────────────────────────────────
+  // Retainer/monthly clients belong to the Clients section, not Projects
+  const oneTimeProjects = projects.filter((p) => {
+    const client = clients.find((c) => c.id === p.client_id);
+    // Show if client is one-time, OR if project has no client (standalone), OR if explicitly not retainer
+    return !client || client.client_type === 'one-time' || client.client_type === undefined;
+  });
+
   // Project payment stats helper
   const getProjectStats = (projectId: string, clientId: string, budget: number) => {
     const pList = payments.filter(
@@ -56,15 +68,32 @@ export default function ProjectsPage() {
     const paid = pList.reduce((s, p) => s + Number(p.amount), 0);
     const pending = Math.max(0, budget - paid);
     const percent = budget > 0 ? Math.min(100, Math.round((paid / budget) * 100)) : 0;
-    return { paid, pending, percent };
+    const isPaid = pending === 0 && budget > 0;
+    return { paid, pending, percent, isPaid };
   };
 
-  const totalCount = projects.length;
-  const activeCount = projects.filter((p) => p.status === 'active').length;
-  const planningCount = projects.filter((p) => p.status === 'planning').length;
-  const onHoldCount = projects.filter((p) => p.status === 'on_hold').length;
+  // Days remaining until end_date
+  const getDaysRemaining = (endDate?: string): { days: number; label: string; color: string } => {
+    if (!endDate) return { days: -1, label: 'No deadline', color: 'text-zinc-500' };
+    const end = new Date(endDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+    const diff = Math.round((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    if (diff < 0) return { days: diff, label: `${Math.abs(diff)}d overdue`, color: 'text-rose-400' };
+    if (diff === 0) return { days: 0, label: 'Due today', color: 'text-amber-400' };
+    if (diff <= 3) return { days: diff, label: `${diff}d left`, color: 'text-amber-400' };
+    if (diff <= 7) return { days: diff, label: `${diff}d left`, color: 'text-yellow-400' };
+    return { days: diff, label: `${diff}d left`, color: 'text-zinc-400' };
+  };
 
-  const filteredProjects = projects.filter((p) => {
+  const totalCount = oneTimeProjects.length;
+  const activeCount = oneTimeProjects.filter((p) => p.status === 'active').length;
+  const planningCount = oneTimeProjects.filter((p) => p.status === 'planning').length;
+  const onHoldCount = oneTimeProjects.filter((p) => p.status === 'on_hold').length;
+  const completedCount = oneTimeProjects.filter((p) => p.status === 'completed').length;
+
+  const filteredProjects = oneTimeProjects.filter((p) => {
     const client = clients.find((c) => c.id === p.client_id);
     const q = search.toLowerCase().trim();
     const matchesSearch =
@@ -102,6 +131,8 @@ export default function ProjectsPage() {
     return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
+
+
   return (
     <AppLayout>
       {/* ======================================================== */}
@@ -114,10 +145,10 @@ export default function ProjectsPage() {
             OPERATIONS & DELIVERABLES
           </span>
           <h1 className="text-xl font-bold tracking-tight text-white mt-0.5">
-            Client Projects
+            One-Time Projects
           </h1>
           <p className="text-[11px] text-zinc-400 mt-0.5 leading-snug">
-            Active campaigns, retainer services, and budget commitments
+            CRM builds, websites, design & one-time deliverables
           </p>
         </div>
 
@@ -127,7 +158,7 @@ export default function ProjectsPage() {
           className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-[#991b1b] via-[#881337] to-[#e11d48] hover:opacity-95 active:scale-[0.99] text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-rose-950/40 transition"
         >
           <Plus className="w-4 h-4" />
-          <span>Create Project</span>
+          <span>New Project</span>
         </Link>
 
         {/* 4 Metric Summary Cards Row */}
@@ -144,9 +175,9 @@ export default function ProjectsPage() {
             <p className="text-base font-bold text-amber-400 font-mono">{planningCount}</p>
             <p className="text-[10px] text-amber-400/90 mt-0.5">Planning</p>
           </div>
-          <div className="bg-orange-500/[0.04] border border-orange-500/25 rounded-xl p-2.5 text-center">
-            <p className="text-base font-bold text-orange-400 font-mono">{onHoldCount}</p>
-            <p className="text-[10px] text-orange-400/90 mt-0.5">On Hold</p>
+          <div className="bg-zinc-700/[0.15] border border-zinc-700/40 rounded-xl p-2.5 text-center">
+            <p className="text-base font-bold text-zinc-300 font-mono">{completedCount}</p>
+            <p className="text-[10px] text-zinc-400 mt-0.5">Done</p>
           </div>
         </div>
 
@@ -237,16 +268,24 @@ export default function ProjectsPage() {
           <div className="space-y-3">
             {filteredProjects.map((project) => {
               const client = clients.find((c) => c.id === project.client_id);
-              const { paid, pending, percent } = getProjectStats(project.id, project.client_id, project.budget);
+              const { paid, pending, percent, isPaid } = getProjectStats(project.id, project.client_id, project.budget);
               const initials = (client?.company_name || project.name || 'PR').slice(0, 2).toUpperCase();
+              const daysInfo = getDaysRemaining(project.end_date);
+              const isCompleted = project.status === 'completed';
 
               return (
                 <Link
                   key={project.id}
                   href={`/projects/${project.id}`}
-                  className="block bg-[#121217] border border-white/[0.08] hover:border-white/20 rounded-2xl p-3.5 transition active:scale-[0.99] shadow-sm relative overflow-hidden text-left"
+                  className={`block bg-[#121217] border rounded-2xl p-3.5 transition active:scale-[0.99] shadow-sm relative overflow-hidden text-left ${
+                    isCompleted
+                      ? 'border-zinc-700/40 opacity-75'
+                      : isPaid
+                      ? 'border-emerald-500/20 hover:border-emerald-500/40'
+                      : 'border-white/[0.08] hover:border-white/20'
+                  }`}
                 >
-                  {/* Top row: Avatar + Name + Subtitle + Status Pill + More menu */}
+                  {/* Top row: Avatar + Name + Status Pill + More menu */}
                   <div className="flex items-start gap-3">
                     <div
                       className={`w-10 h-10 rounded-full border flex items-center justify-center font-bold text-xs shrink-0 ${getAvatarStyle(client?.company_name || project.name)}`}
@@ -259,9 +298,12 @@ export default function ProjectsPage() {
                           {project.name}
                         </h3>
                         <div className="flex items-center gap-1.5 shrink-0">
+                          {/* Status pill */}
                           <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-0.5 ${
-                              project.status === 'active'
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                              isCompleted
+                                ? 'bg-zinc-700/30 text-zinc-400 border border-zinc-700/40'
+                                : project.status === 'active'
                                 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/25'
                                 : project.status === 'planning'
                                 ? 'bg-amber-500/10 text-amber-400 border border-amber-500/25'
@@ -270,10 +312,7 @@ export default function ProjectsPage() {
                                 : 'bg-zinc-700/30 text-zinc-400 border border-zinc-700/40'
                             }`}
                           >
-                            {project.status === 'on_hold'
-                              ? 'On Hold'
-                              : project.status.charAt(0).toUpperCase() + project.status.slice(1)}
-                            <ChevronRight className="w-2.5 h-2.5 opacity-70" />
+                            {project.status === 'on_hold' ? 'On Hold' : project.status.charAt(0).toUpperCase() + project.status.slice(1)}
                           </span>
                           <button
                             type="button"
@@ -289,55 +328,60 @@ export default function ProjectsPage() {
                         </div>
                       </div>
                       <p className="text-[11px] text-zinc-400 truncate mt-0.5">
-                        {client?.company_name || 'Unassigned Client'}
+                        {client?.company_name || 'Unassigned Client'} · {project.service}
                       </p>
                     </div>
                   </div>
 
-                  {/* Second row: Service & Due date */}
-                  <div className="flex items-center justify-between text-[11px] text-zinc-400 mt-2.5 pt-2 border-t border-white/[0.04]">
-                    <span className="flex items-center gap-1.5 truncate">
-                      <Briefcase className="w-3 h-3 text-zinc-400 shrink-0" />
-                      <span className="truncate">{project.service}</span>
-                    </span>
-                    <span className="flex items-center gap-1 font-mono shrink-0 ml-2">
-                      <Calendar className="w-3 h-3 text-zinc-400" />
-                      <span>{formatDue(project.end_date)}</span>
-                    </span>
-                  </div>
-
-                  {/* Third row: Financials summary */}
-                  <div className="flex items-center justify-between text-xs mt-2 font-mono">
-                    <div className="flex items-center gap-1.5 text-[11px] truncate">
-                      <span className="font-bold text-white">
-                        {formatCurrency(project.budget)}
-                      </span>
-                      <span className="text-zinc-500">•</span>
-                      <span className="text-zinc-400">
-                        {formatCurrency(paid)} paid
-                      </span>
-                      <span className="text-zinc-500">•</span>
-                      <span className="text-amber-400">
-                        {formatCurrency(pending)} pending
-                      </span>
+                  {/* Key info row: Days remaining + Payment status */}
+                  <div className="flex items-center gap-2 mt-2.5 pt-2 border-t border-white/[0.04]">
+                    {/* Days remaining */}
+                    <div className={`flex items-center gap-1 text-[11px] font-semibold ${isCompleted ? 'text-zinc-500' : daysInfo.color}`}>
+                      <Clock className="w-3 h-3 shrink-0" />
+                      <span>{isCompleted ? 'Completed' : daysInfo.label}</span>
                     </div>
-                    <span className="text-xs font-semibold text-zinc-300 shrink-0 ml-2">
-                      {percent}%
+
+                    <span className="text-zinc-600">·</span>
+
+                    {/* Payment status badge */}
+                    {isPaid ? (
+                      <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-400">
+                        <CheckCircle2 className="w-3 h-3 shrink-0" />
+                        <span>Paid {formatCurrency(paid)}</span>
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 text-[11px] font-semibold text-amber-400">
+                        <AlertCircle className="w-3 h-3 shrink-0" />
+                        <span>₹{pending.toLocaleString('en-IN')} pending</span>
+                      </span>
+                    )}
+
+                    {/* Budget on right */}
+                    <span className="ml-auto text-[11px] font-mono font-bold text-zinc-300">
+                      {formatCurrency(project.budget)}
                     </span>
                   </div>
 
                   {/* Progress bar */}
                   <div className="w-full h-1 bg-zinc-800/80 rounded-full overflow-hidden mt-2.5">
                     <div
-                      className="h-full bg-gradient-to-r from-[#e11d48] to-[#be123c] rounded-full transition-all duration-500"
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        isPaid
+                          ? 'bg-gradient-to-r from-emerald-500 to-emerald-400'
+                          : 'bg-gradient-to-r from-[#e11d48] to-[#be123c]'
+                      }`}
                       style={{ width: `${percent}%` }}
                     />
                   </div>
+                  {percent > 0 && !isPaid && (
+                    <p className="text-[10px] text-zinc-500 mt-1 font-mono">{percent}% paid · {formatCurrency(paid)} received</p>
+                  )}
                 </Link>
               );
             })}
           </div>
         )}
+
 
         {/* Filters Bottom Sheet / Modal (Screen 5) */}
         {showFiltersModal && (
@@ -480,17 +524,17 @@ export default function ProjectsPage() {
       {/* 2. DESKTOP / LAPTOP CLIENT PROJECTS VIEW (100% UNCHANGED) */}
       {/* ======================================================== */}
       <div className="hidden sm:block space-y-6">
-        {/* Header (Section 26) */}
+        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-white/[0.08]">
           <div>
             <span className="text-[11px] font-mono tracking-widest text-zinc-400 uppercase">
-              Operations & Deliverables
+              Operations &amp; Deliverables
             </span>
             <h1 className="text-xl md:text-2xl font-bold tracking-tight text-white mt-0.5">
-              Client Projects
+              One-Time Projects
             </h1>
             <p className="text-xs text-zinc-400 mt-1">
-              Active campaigns, retainer services, and budget commitments
+              CRM builds, websites, design &amp; one-time deliverables
             </p>
           </div>
 
@@ -532,7 +576,7 @@ export default function ProjectsPage() {
           </div>
         </div>
 
-        {/* Projects Grid / Table */}
+        {/* Projects Table */}
         <div className="glass-panel p-0 overflow-hidden">
           <div className="glass-table-container">
             <table className="glass-table">
@@ -542,8 +586,8 @@ export default function ProjectsPage() {
                   <th>Client</th>
                   <th>Service</th>
                   <th>Budget</th>
-                  <th>Timeline</th>
-                  <th>Assigned To</th>
+                  <th>Days Left</th>
+                  <th>Payment</th>
                   <th>Status</th>
                   <th className="text-right">Actions</th>
                 </tr>
@@ -558,6 +602,9 @@ export default function ProjectsPage() {
                 ) : (
                   filteredProjects.map((project) => {
                     const client = clients.find((c) => c.id === project.client_id);
+                    const { paid, pending, percent, isPaid } = getProjectStats(project.id, project.client_id, project.budget);
+                    const daysInfo = getDaysRemaining(project.end_date);
+                    const isCompleted = project.status === 'completed';
 
                     return (
                       <tr key={project.id} className="hover:bg-white/[0.03]">
@@ -595,16 +642,32 @@ export default function ProjectsPage() {
                           {formatCurrency(project.budget)}
                         </td>
                         <td>
-                          <span className="text-xs text-zinc-400 font-mono">
-                            {formatDate(project.start_date)}
-                            {project.end_date ? ` → ${formatDate(project.end_date)}` : ''}
+                          <span className={`text-xs font-semibold font-mono ${isCompleted ? 'text-zinc-500' : daysInfo.color}`}>
+                            {isCompleted ? '✓ Done' : daysInfo.label}
                           </span>
                         </td>
                         <td>
-                          <span className="text-xs text-zinc-300 flex items-center gap-1">
-                            <User className="w-3 h-3 text-zinc-500" />
-                            {project.assigned_to || 'Salih (Lead)'}
-                          </span>
+                          <div className="space-y-1">
+                            {isPaid ? (
+                              <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-400">
+                                <CheckCircle2 className="w-3 h-3 shrink-0" />
+                                <span>Paid {formatCurrency(paid)}</span>
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1 text-[11px] font-semibold text-amber-400">
+                                <AlertCircle className="w-3 h-3 shrink-0" />
+                                <span>₹{pending.toLocaleString('en-IN')} pending</span>
+                              </span>
+                            )}
+                            {project.budget > 0 && (
+                              <div className="w-20 h-1 bg-zinc-800 rounded-full overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full ${isPaid ? 'bg-emerald-500' : 'bg-rose-500'}`}
+                                  style={{ width: `${percent}%` }}
+                                />
+                              </div>
+                            )}
+                          </div>
                         </td>
                         <td>
                           <span
