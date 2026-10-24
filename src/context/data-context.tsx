@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, useRef, ReactNode } from 'react';
 import {
   Client,
   Project,
@@ -102,19 +102,38 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  // Fetch live records directly from Supabase
-  const loadData = async () => {
+  // Show cached data immediately — no blank screen while Supabase fetches
+  const loadFromCache = () => {
+    if (typeof window === 'undefined') return;
+    try {
+      const sc   = localStorage.getItem(STORAGE_KEYS.CLIENTS);
+      const sp   = localStorage.getItem(STORAGE_KEYS.PROJECTS);
+      const spay = localStorage.getItem(STORAGE_KEYS.PAYMENTS);
+      const se   = localStorage.getItem(STORAGE_KEYS.EXPENSES);
+      const si   = localStorage.getItem(STORAGE_KEYS.INVOICES);
+      if (sc)   setClients(JSON.parse(sc));
+      if (sp)   setProjects(JSON.parse(sp));
+      if (spay) setPayments(JSON.parse(spay));
+      if (se)   setExpenses(JSON.parse(se));
+      if (si)   setInvoices(JSON.parse(si));
+    } catch (e) {
+      console.warn('Cache read error:', e);
+    }
+  };
+
+  // useCallback so realtime subscription always gets the latest reference (fixes stale closure)
+  const loadData = useCallback(async (retries = 3) => {
     setIsLoading(true);
     try {
       const [
-        { data: clientsData, error: cErr },
+        { data: clientsData,  error: cErr },
         { data: projectsData, error: pErr },
         { data: paymentsData, error: payErr },
         { data: expensesData, error: expErr },
         { data: invoicesData, error: invErr },
       ] = await Promise.all([
-        supabase.from('clients').select('*').order('created_at', { ascending: false }),
-        supabase.from('projects').select('*').order('created_at', { ascending: false }),
+        supabase.from('clients').select('*').order('created_at',    { ascending: false }),
+        supabase.from('projects').select('*').order('created_at',   { ascending: false }),
         supabase.from('payments').select('*').order('payment_date', { ascending: false }),
         supabase.from('expenses').select('*').order('expense_date', { ascending: false }),
         supabase.from('invoices').select('*, items:invoice_items(*)').order('created_at', { ascending: false }),
@@ -122,7 +141,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (!cErr && !pErr && !payErr && !expErr && !invErr) {
         setIsSupabaseConnected(true);
-        const loadedClients = (clientsData as Client[]) || [];
+        const loadedClients  = (clientsData  as Client[])  || [];
         const loadedProjects = (projectsData as Project[]) || [];
         const loadedPayments = (paymentsData as Payment[]) || [];
         const loadedExpenses = (expensesData as Expense[]) || [];
@@ -134,78 +153,69 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setExpenses(loadedExpenses);
         setInvoices(loadedInvoices);
 
-        persist(STORAGE_KEYS.CLIENTS, loadedClients);
+        persist(STORAGE_KEYS.CLIENTS,  loadedClients);
         persist(STORAGE_KEYS.PROJECTS, loadedProjects);
         persist(STORAGE_KEYS.PAYMENTS, loadedPayments);
         persist(STORAGE_KEYS.EXPENSES, loadedExpenses);
         persist(STORAGE_KEYS.INVOICES, loadedInvoices);
       } else {
-        console.warn('Supabase fetch returned error, checking local cache:', { cErr, pErr, payErr, expErr, invErr });
-        setIsSupabaseConnected(false);
-        // Fallback to local storage if offline
-        if (typeof window !== 'undefined') {
-          const sc = localStorage.getItem(STORAGE_KEYS.CLIENTS);
-          const sp = localStorage.getItem(STORAGE_KEYS.PROJECTS);
-          const spay = localStorage.getItem(STORAGE_KEYS.PAYMENTS);
-          const se = localStorage.getItem(STORAGE_KEYS.EXPENSES);
-          const si = localStorage.getItem(STORAGE_KEYS.INVOICES);
-          if (sc) setClients(JSON.parse(sc));
-          if (sp) setProjects(JSON.parse(sp));
-          if (spay) setPayments(JSON.parse(spay));
-          if (se) setExpenses(JSON.parse(se));
-          if (si) setInvoices(JSON.parse(si));
+        // Retry on transient errors (slow mobile network)
+        if (retries > 0) {
+          console.warn(`Supabase fetch error — retrying (${retries} left)…`);
+          setTimeout(() => loadData(retries - 1), 1500);
+          return;
         }
+        console.warn('Supabase fetch failed after retries — using cache');
+        setIsSupabaseConnected(false);
+        loadFromCache();
       }
     } catch (e) {
-      console.error('Error connecting to Supabase:', e);
+      if (retries > 0) {
+        console.warn(`Supabase exception — retrying (${retries} left)…`, e);
+        setTimeout(() => loadData(retries - 1), 1500);
+        return;
+      }
+      console.error('Supabase connection failed — using cache:', e);
       setIsSupabaseConnected(false);
+      loadFromCache();
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Ref so realtime callbacks always call the *latest* loadData (avoids stale closure)
+  const loadDataRef = useRef(loadData);
+  useEffect(() => { loadDataRef.current = loadData; }, [loadData]);
 
   useEffect(() => {
-    // One-time auto-wipe of any legacy demo cache in client browser
-    if (typeof window !== 'undefined') {
-      const resetDone = localStorage.getItem('xyvex_cache_v3_wiped');
-      if (!resetDone) {
-        localStorage.removeItem(STORAGE_KEYS.CLIENTS);
-        localStorage.removeItem(STORAGE_KEYS.PROJECTS);
-        localStorage.removeItem(STORAGE_KEYS.PAYMENTS);
-        localStorage.removeItem(STORAGE_KEYS.EXPENSES);
-        localStorage.removeItem(STORAGE_KEYS.INVOICES);
-        localStorage.removeItem(STORAGE_KEYS.NOTIFICATIONS);
-        localStorage.setItem('xyvex_cache_v3_wiped', 'true');
-      }
-    }
-    loadData();
-    // Also load settings from localStorage
+    // 1. Show cached data instantly (no blank flash on refresh)
+    loadFromCache();
+
+    // 2. Load settings
     if (typeof window !== 'undefined') {
       const storedSettings = localStorage.getItem(STORAGE_KEYS.SETTINGS);
       if (storedSettings) {
-        try {
-          setSettings(JSON.parse(storedSettings));
-        } catch {}
+        try { setSettings(JSON.parse(storedSettings)); } catch {}
       }
     }
 
-    // ── Supabase Realtime ──────────────────────────────────────────────────
-    // Any INSERT / UPDATE / DELETE on any device triggers a live re-fetch
-    // so all open devices stay in sync without a manual page reload.
+    // 3. Fetch fresh data from Supabase
+    loadData();
+
+    // ── Supabase Realtime ─────────────────────────────────────────────────
+    // loadDataRef.current ensures realtime callbacks always call latest fn
     const channel = supabase
       .channel('xyvex-crm-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'clients' },   () => loadData())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' },  () => loadData())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'payments' },  () => loadData())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses' },  () => loadData())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'invoices' },  () => loadData())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'invoice_items' }, () => loadData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'clients' },       () => loadDataRef.current())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' },      () => loadDataRef.current())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'payments' },      () => loadDataRef.current())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses' },      () => loadDataRef.current())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'invoices' },      () => loadDataRef.current())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'invoice_items' }, () => loadDataRef.current())
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+    return () => { supabase.removeChannel(channel); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // CLIENT FINANCIAL REPORTS COMPUTATION
   const clientReports = useMemo<ClientFinancialReport[]>(() => {
