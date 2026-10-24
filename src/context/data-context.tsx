@@ -188,6 +188,23 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } catch {}
       }
     }
+
+    // ── Supabase Realtime ──────────────────────────────────────────────────
+    // Any INSERT / UPDATE / DELETE on any device triggers a live re-fetch
+    // so all open devices stay in sync without a manual page reload.
+    const channel = supabase
+      .channel('xyvex-crm-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'clients' },   () => loadData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' },  () => loadData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'payments' },  () => loadData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses' },  () => loadData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'invoices' },  () => loadData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'invoice_items' }, () => loadData())
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   // CLIENT FINANCIAL REPORTS COMPUTATION
