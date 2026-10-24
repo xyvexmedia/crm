@@ -276,7 +276,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
               <input
                 type="number"
                 min="1"
-                step="50"
+                step="any"
                 required
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
