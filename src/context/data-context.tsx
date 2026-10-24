@@ -324,6 +324,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           status: clientData.status || 'active',
           total_budget: clientData.total_budget || 0,
           billing_date: clientData.billing_date || null,
+          services: clientData.services || [],
+          client_type: clientData.client_type || 'retainer',
+          billing_day: clientData.billing_day || null,
           notes: clientData.notes || null,
         }])
         .select()

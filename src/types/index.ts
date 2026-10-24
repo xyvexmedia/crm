@@ -13,6 +13,9 @@ export interface Client {
   status: ClientStatus;
   total_budget?: number;
   billing_date?: string; // YYYY-MM-DD
+  billing_day?: number;  // day of month (1-31) for retainer clients
+  client_type?: 'retainer' | 'one-time';
+  services?: string[];   // array of service names
   notes?: string;
   created_at: string;
   updated_at?: string;
