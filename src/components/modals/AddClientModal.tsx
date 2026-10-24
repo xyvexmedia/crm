@@ -39,8 +39,27 @@ const ALL_SERVICES = [
   'Photography',
   'CRM Setup',
   'Branding',
+  'Email Marketing',
+  'WhatsApp Marketing',
   'Other',
 ];
+
+// Work types for one-time projects
+const ONE_TIME_WORK_TYPES = [
+  'CRM Work',
+  'Website Work',
+  'Logo Design',
+  'Branding Package',
+  'Video Production',
+  'Photography Shoot',
+  'Meta Ads Setup',
+  'Google Ads Setup',
+  'Social Media Setup',
+  'SEO Audit',
+  'Content Creation',
+  'Other',
+];
+
 
 export const AddClientModal: React.FC<AddClientModalProps> = ({
   isOpen,
@@ -63,6 +82,7 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
 
   // Service & Billing
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [selectedWorkTypes, setSelectedWorkTypes] = useState<string[]>([]); // for one-time projects
   const [clientType, setClientType] = useState<'retainer' | 'one-time'>('retainer');
   const [billingDay, setBillingDay] = useState('');
   const [status, setStatus] = useState<ClientStatus>('active');
@@ -92,6 +112,12 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
     );
   };
 
+  const toggleWorkType = (wt: string) => {
+    setSelectedWorkTypes((prev) =>
+      prev.includes(wt) ? prev.filter((w) => w !== wt) : [...prev, wt]
+    );
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedCompany = companyName.trim();
@@ -107,11 +133,25 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
       setError('Please select at least one service.');
       return;
     }
+    if (clientType === 'one-time' && selectedWorkTypes.length === 0) {
+      setError('Please select at least one work type for this one-time project.');
+      return;
+    }
 
     setLoading(true);
     setError('');
 
     try {
+      // Compute billing_date for retainer (next occurrence of billing day)
+      let billingDateStr: string | undefined;
+      if (clientType === 'retainer' && billingDay) {
+        const day = Number(billingDay);
+        const now = new Date();
+        let bd = new Date(now.getFullYear(), now.getMonth(), day);
+        if (bd <= now) bd = new Date(now.getFullYear(), now.getMonth() + 1, day);
+        billingDateStr = bd.toISOString().split('T')[0];
+      }
+
       const newClient = await addClient({
         company_name: trimmedCompany,
         name: trimmedCompany,
@@ -126,18 +166,20 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
         client_type: clientType,
         services: selectedServices,
         billing_day: clientType === 'retainer' && billingDay ? Number(billingDay) : undefined,
-        billing_date: undefined,
+        billing_date: billingDateStr,
         notes: notes.trim() || undefined,
       });
 
-      // Auto-create project
-      const projectService = selectedServices.join(' + ');
+      // Auto-create project — use work types for one-time, services for retainer
+      const projectService = clientType === 'one-time'
+        ? selectedWorkTypes.join(' + ')
+        : selectedServices.join(' + ');
+
       const projectName = clientType === 'retainer'
         ? `${trimmedCompany} — ${projectService} (Retainer)`
         : `${trimmedCompany} — ${projectService}`;
 
-      let newProj = null;
-      newProj = await addProject({
+      const newProj = await addProject({
         client_id: newClient.id,
         name: projectName,
         service: projectService,
@@ -147,8 +189,8 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
         status: status === 'completed' ? 'completed' : 'active',
         assigned_to: 'Salih (Lead)',
         notes: clientType === 'retainer'
-          ? `Monthly retainer. Billing day: ${billingDay || 'TBD'}`
-          : 'One-time project',
+          ? `Monthly retainer. Billing day: ${billingDay || 'TBD'}. Next billing: ${billingDateStr || 'TBD'}`
+          : `One-time project: ${selectedWorkTypes.join(', ')}`,
       });
 
       // Record advance payment
@@ -177,6 +219,7 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
       setBillingDay('');
       setStatus('active');
       setSelectedServices([]);
+      setSelectedWorkTypes([]);
       setClientType('retainer');
       setNotes('');
 
@@ -189,7 +232,9 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
     }
   };
 
+
   return (
+
     <div
       className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-fade overflow-hidden"
       onClick={(e) => {
@@ -342,8 +387,7 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
                     className="w-16 text-center glass-input !py-1.5 text-sm font-bold text-[#a3e635] placeholder:text-zinc-600"
                   />
                 </div>
-              )}
-            </div>
+              )}\n            </div>
 
             {/* Section 3: Services Multi-select */}
             <div className="space-y-3 pt-2 border-t border-white/[0.06]">
@@ -373,6 +417,40 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
                 })}
               </div>
             </div>
+
+            {/* Section 3b: Project Work Type — only for one-time clients */}
+            {clientType === 'one-time' && (
+              <div className="space-y-3 pt-2 border-t border-amber-500/20">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Project Work Type <span className="text-[#e11d48]">*</span></h3>
+                    <p className="text-[10px] text-zinc-500 mt-0.5">What work will be done for this project?</p>
+                  </div>
+                  {selectedWorkTypes.length > 0 && (
+                    <span className="text-[10px] text-amber-400 font-semibold">{selectedWorkTypes.length} selected</span>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {ONE_TIME_WORK_TYPES.map((wt) => {
+                    const isSelected = selectedWorkTypes.includes(wt);
+                    return (
+                      <button
+                        key={wt}
+                        type="button"
+                        onClick={() => toggleWorkType(wt)}
+                        className={`px-3 py-1.5 rounded-full text-[11px] font-semibold border transition active:scale-95 ${
+                          isSelected
+                            ? 'bg-amber-500/15 border-amber-500/50 text-amber-400'
+                            : 'bg-white/[0.04] border-white/10 text-zinc-400 hover:text-white hover:border-white/25'
+                        }`}
+                      >
+                        {isSelected && <span className="mr-1">✓</span>}{wt}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Section 4: Financial */}
             <div className="space-y-3 pt-2 border-t border-white/[0.06]">
